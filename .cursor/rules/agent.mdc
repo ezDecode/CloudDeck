@@ -1,0 +1,36 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# .cursorrules
+description: |
+  Efficient 25-tool-call agent loop.
+  Uses full 25 calls per request, retries tool fails once, continues via user prompt.
+globs:
+  - "**/*"
+alwaysApply: true
+
+# Initialize
+$tool_calls_used = 0
+
+# Step: Wrap every actual tool call
+[before_tool_call]
+$tool_calls_used += 1
+if $tool_calls_used > 25:
+  close_loop_and_summarize("🛑 Reached 25 tool calls — summary follows.")
+exec_and_retry_once()
+
+[after_tool_call]
+print("⚙️ {$tool_calls_used}/25 tool calls used")
+
+# Loop control
+if $tool_calls_used < 25:
+  run "python .cursor/next_input.py" → $user_input
+  if $user_input in ["stop","exit",""]:
+    print("👋 Session ended by user.")
+    close_loop_and_summarize()
+  else:
+    set_next_instruction($user_input)
+else:
+  close_loop_and_summarize("✅ Max tool calls used. Loop ended.")
