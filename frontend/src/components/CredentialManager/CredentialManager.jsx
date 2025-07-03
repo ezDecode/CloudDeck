@@ -399,51 +399,67 @@ export default function CredentialManager({ onConnect }) {
                 </motion.div>
               )}
 
-              {/* Team Creation/Join Toggle */}
+              {/* Team Creation/Join Toggle with icons */}
               {!connected && !teamMode && (
-                <div className="mb-6 flex gap-2">
+                <div className="mb-6 flex gap-2 bg-gray-700/30 p-1 rounded-2xl">
                   <motion.button
                     type="button"
-                    className={`flex-1 py-2 px-4 rounded-xl text-sm font-medium transition-all duration-200 ${
+                    className={`flex-1 py-3 px-4 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
                       !showTeamCreation 
-                        ? 'bg-gray-700/80 text-white border border-gray-600/50' 
-                        : 'bg-gray-600/50 text-gray-300 border border-gray-600/30'
+                        ? 'bg-gray-700/80 text-white border border-gray-600/50 shadow-md' 
+                        : 'bg-transparent text-gray-300 hover:bg-gray-600/30'
                     }`}
                     onClick={() => setShowTeamCreation(false)}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
+                    aria-pressed={!showTeamCreation}
+                    aria-label="Switch to individual mode"
                   >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
                     Individual
                   </motion.button>
                   <motion.button
                     type="button"
-                    className={`flex-1 py-2 px-4 rounded-xl text-sm font-medium transition-all duration-200 ${
+                    className={`flex-1 py-3 px-4 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
                       showTeamCreation 
-                        ? 'bg-blue-700/80 text-white border border-blue-600/50' 
-                        : 'bg-gray-600/50 text-gray-300 border border-gray-600/30'
+                        ? 'bg-blue-700/80 text-white border border-blue-600/50 shadow-md' 
+                        : 'bg-transparent text-gray-300 hover:bg-gray-600/30'
                     }`}
                     onClick={() => setShowTeamCreation(true)}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
+                    aria-pressed={showTeamCreation}
+                    aria-label="Switch to team creation mode"
                   >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
                     Create Team
                   </motion.button>
                 </div>
               )}
 
               <form onSubmit={handleConnect} className="space-y-6">
-                {/* Team Name Field */}
+                {/* Team Name Field with icon */}
                 {showTeamCreation && !connected && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.3 }}
+                    className="relative group"
                   >
+                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-blue-400 group-focus-within:text-blue-300 transition-colors">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                    </div>
                     <input
                       id="teamName"
                       type="text"
-                      className="w-full text-white bg-blue-700/60 border border-blue-600/50 rounded-2xl px-6 py-3 text-base font-satoshi font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 hover:bg-blue-600/60 placeholder-blue-200 backdrop-blur-sm"
+                      className="w-full text-white bg-blue-700/60 border border-blue-600/50 rounded-2xl pl-12 pr-6 py-3 text-base font-satoshi font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 hover:bg-blue-600/60 placeholder-blue-200 backdrop-blur-sm"
                       placeholder="Team Name (e.g., Marketing Team)"
                       value={teamName}
                       onChange={e => setTeamName(e.target.value)}
@@ -452,17 +468,23 @@ export default function CredentialManager({ onConnect }) {
                   </motion.div>
                 )}
 
-                {/* Form Fields with enhanced consistency */}
+                {/* Form Fields with enhanced consistency and icons */}
                 <div className="space-y-5">
                   <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 }}
+                    className="relative group"
                   >
+                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-yellow-400 transition-colors">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                      </svg>
+                    </div>
                     <input
                       id="accessKey"
                       type="text"
-                      className="w-full text-white bg-gray-700/80 border border-gray-600/50 rounded-2xl px-6 py-3 text-base font-satoshi font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400/50 hover:bg-gray-600/80 placeholder-gray-400 backdrop-blur-sm"
+                      className="w-full text-white bg-gray-700/80 border border-gray-600/50 rounded-2xl pl-12 pr-6 py-3 text-base font-satoshi font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400/50 hover:bg-gray-600/80 placeholder-gray-400 backdrop-blur-sm"
                       placeholder="Access Key ID"
                       value={accessKey}
                       onChange={e => setAccessKey(e.target.value)}
@@ -474,11 +496,17 @@ export default function CredentialManager({ onConnect }) {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4 }}
+                    className="relative group"
                   >
+                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-yellow-400 transition-colors">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    </div>
                     <input
                       id="secretKey"
                       type="password"
-                      className="w-full text-white bg-gray-700/80 border border-gray-600/50 rounded-2xl px-6 py-3 text-base font-satoshi font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400/50 hover:bg-gray-600/80 placeholder-gray-400 backdrop-blur-sm"
+                      className="w-full text-white bg-gray-700/80 border border-gray-600/50 rounded-2xl pl-12 pr-6 py-3 text-base font-satoshi font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400/50 hover:bg-gray-600/80 placeholder-gray-400 backdrop-blur-sm"
                       placeholder="Secret Access Key"
                       value={secretKey}
                       onChange={e => setSecretKey(e.target.value)}
@@ -490,11 +518,17 @@ export default function CredentialManager({ onConnect }) {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.5 }}
+                    className="relative group"
                   >
+                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-yellow-400 transition-colors">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                      </svg>
+                    </div>
                     <input
                       id="bucket"
                       type="text"
-                      className="w-full text-white bg-gray-700/80 border border-gray-600/50 rounded-2xl px-6 py-3 text-base font-satoshi font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400/50 hover:bg-gray-600/80 placeholder-gray-400 backdrop-blur-sm"
+                      className="w-full text-white bg-gray-700/80 border border-gray-600/50 rounded-2xl pl-12 pr-6 py-3 text-base font-satoshi font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400/50 hover:bg-gray-600/80 placeholder-gray-400 backdrop-blur-sm"
                       placeholder="Bucket Name"
                       value={bucket}
                       onChange={e => setBucket(e.target.value)}
@@ -506,10 +540,16 @@ export default function CredentialManager({ onConnect }) {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.6 }}
+                    className="relative group"
                   >
+                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-yellow-400 transition-colors">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
                     <select
                       id="region"
-                      className="w-full text-white bg-gray-700/80 border border-gray-600/50 rounded-2xl px-6 py-3 text-base font-satoshi font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400/50 hover:bg-gray-600/80 backdrop-blur-sm appearance-none cursor-pointer"
+                      className="w-full text-white bg-gray-700/80 border border-gray-600/50 rounded-2xl pl-12 pr-6 py-3 text-base font-satoshi font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400/50 hover:bg-gray-600/80 backdrop-blur-sm appearance-none cursor-pointer"
                       value={region}
                       onChange={e => setRegion(e.target.value)}
                     >

@@ -28,6 +28,7 @@ export default function FileExplorer({ onDisconnect }) {
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, itemsToDelete: new Set() });
   const [fileTypeFilter, setFileTypeFilter] = useState("all");
   const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const handleFileChange = async (e) => {
     const selectedFiles = Array.from(e.target.files);
@@ -353,17 +354,9 @@ export default function FileExplorer({ onDisconnect }) {
 
   if (loading && files.length === 0 && folders.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-        <div className="text-center p-8 bg-white/80 dark:bg-slate-800/80 rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-md">
-          <div className="relative mb-6">
-            <LoadingSpinner size="xl" />
-          </div>
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
-            Connecting to your S3 bucket...
-          </h3>
-          <p className="text-slate-600 dark:text-slate-400">
-            Please wait while we load your files
-          </p>
+      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+        <div className="text-center p-8 bg-white/90 dark:bg-slate-800/90 rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-md">
+          <LoadingSpinner size="xl" text="Connecting to your S3 bucket..." />
         </div>
       </div>
     );
@@ -371,7 +364,7 @@ export default function FileExplorer({ onDisconnect }) {
 
   if (error && files.length === 0 && folders.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
         <div className="text-center max-w-md mx-auto p-8">
           <div className="w-24 h-24 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
             <svg className="w-12 h-12 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -405,177 +398,277 @@ export default function FileExplorer({ onDisconnect }) {
       onDrop={handleDrop}
     >
       {/* Navigation Bar */}
-      <nav className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border-b border-slate-200/50 dark:border-slate-700/50 px-8 py-4 shadow-sm">
+      <nav className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-md border-b border-slate-200/50 dark:border-slate-700/50 px-4 sm:px-6 lg:px-8 py-3 sm:py-4 shadow-sm">
         <div className="flex items-center justify-between">
           {/* Left Section - Logo + Title + Breadcrumb */}
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex items-center space-x-3 sm:space-x-6 min-w-0 flex-1">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                <svg className="w-4 h-4 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
                 </svg>
               </div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                CloudDeck
-              </h1>
+              <div className="hidden sm:block">
+                <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  CloudDeck
+                </h1>
+                <p className="text-xs text-slate-500 dark:text-slate-400">File Explorer</p>
+              </div>
             </div>
-            <div className="h-6 w-px bg-slate-300 dark:bg-slate-600"></div>
-            <Breadcrumb path={currentPath} onNavigate={setCurrentPath} />
+            <div className="hidden sm:block h-8 w-px bg-slate-300 dark:bg-slate-600"></div>
+            <div className="hidden md:block min-w-0 flex-1">
+              <Breadcrumb path={currentPath} onNavigate={setCurrentPath} />
+            </div>
           </div>
 
           {/* Right Section - Controls */}
-          <div className="flex items-center space-x-4">
-            {/* Search Bar */}
-            <div className="relative">
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              className="sm:hidden p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+
+            {/* Desktop Controls */}
+            <div className="hidden sm:flex items-center space-x-4">
+              {/* Search Bar */}
+              <div className="relative">
+                <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search files and folders..."
+                  className="pl-10 pr-4 py-2.5 w-64 lg:w-80 border border-slate-200 dark:border-slate-600 rounded-xl bg-white/70 dark:bg-slate-700/70 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+
+              {/* Filter Button */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowFilterMenu(!showFilterMenu)}
+                  className="flex items-center space-x-2 px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl bg-white/70 dark:bg-slate-700/70 text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 transition-all duration-200 backdrop-blur-sm"
+                  title="Filter files"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z" />
+                  </svg>
+                  <span className="text-sm hidden lg:inline">{fileTypeOptions.find(opt => opt.value === fileTypeFilter)?.label}</span>
+                  <svg className={`w-3 h-3 transition-transform duration-200 ${showFilterMenu ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                
+                {/* Filter Dropdown */}
+                {showFilterMenu && (
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 z-50 backdrop-blur-sm">
+                    {fileTypeOptions.map(option => (
+                      <button
+                        key={option.value}
+                        onClick={() => {
+                          setFileTypeFilter(option.value);
+                          setShowFilterMenu(false);
+                        }}
+                        className={`w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors duration-200 flex items-center space-x-3 first:rounded-t-xl last:rounded-b-xl ${
+                          fileTypeFilter === option.value ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400" : "text-slate-700 dark:text-slate-200"
+                        }`}
+                      >
+                        <span className="text-base">{option.icon}</span>
+                        <span>{option.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* View Toggle */}
+              <div className="hidden lg:flex bg-slate-100 dark:bg-slate-700 rounded-xl p-1 shadow-inner">
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={`p-2.5 rounded-lg transition-all duration-200 ${
+                    viewMode === "grid" 
+                      ? "bg-white dark:bg-slate-600 shadow-sm text-blue-600 dark:text-blue-400" 
+                      : "text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white/50 dark:hover:bg-slate-600/50"
+                  }`}
+                  title="Grid view"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                      d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" 
+                    />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={`p-2.5 rounded-lg transition-all duration-200 ${
+                    viewMode === "list" 
+                      ? "bg-white dark:bg-slate-600 shadow-sm text-blue-600 dark:text-blue-400" 
+                      : "text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white/50 dark:hover:bg-slate-600/50"
+                  }`}
+                  title="List view"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                      d="M4 6h16M4 10h16M4 14h16M4 18h16" 
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={handleNewFolder}
+                  className="p-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm"
+                  title="Create new folder"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                  className="p-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm"
+                  title="Upload files"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Control Buttons */}
+              <div className="flex items-center space-x-2 border-l border-slate-200 dark:border-slate-600 pl-4">
+                <button
+                  onClick={handleRefresh}
+                  disabled={loading}
+                  className="p-2.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed border border-slate-200 dark:border-slate-600"
+                  title="Refresh"
+                >
+                  <svg className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                </button>
+                <button
+                  onClick={handleDisconnect}
+                  className="p-2.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 border border-red-200 dark:border-red-800"
+                  title="Disconnect from S3"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        {showMobileMenu && (
+          <div className="sm:hidden mt-4 p-4 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700">
+            {/* Mobile Search */}
+            <div className="relative mb-4">
               <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <input
                 type="text"
                 placeholder="Search files and folders..."
-                className="pl-10 pr-4 py-2.5 w-80 border border-slate-200 dark:border-slate-600 rounded-xl bg-white/70 dark:bg-slate-700/70 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
+                className="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-lg bg-white/70 dark:bg-slate-700/70 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
 
-            {/* Filter Button */}
-            <div className="relative">
-              <button
-                onClick={() => setShowFilterMenu(!showFilterMenu)}
-                className="flex items-center space-x-2 px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl bg-white/70 dark:bg-slate-700/70 text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 transition-all duration-200 backdrop-blur-sm"
-                title="Filter files"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z" />
-                </svg>
-                <span className="text-sm">{fileTypeOptions.find(opt => opt.value === fileTypeFilter)?.label}</span>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              
-              {/* Filter Dropdown */}
-              {showFilterMenu && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 py-2 z-50 backdrop-blur-sm">
-                  {fileTypeOptions.map(option => (
-                    <button
-                      key={option.value}
-                      onClick={() => {
-                        setFileTypeFilter(option.value);
-                        setShowFilterMenu(false);
-                      }}
-                      className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors duration-200 flex items-center space-x-3 ${
-                        fileTypeFilter === option.value ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400" : "text-slate-700 dark:text-slate-200"
-                      }`}
-                    >
-                      <span className="text-base">{option.icon}</span>
-                      <span>{option.label}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
+            {/* Mobile Breadcrumb */}
+            <div className="mb-4">
+              <Breadcrumb path={currentPath} onNavigate={setCurrentPath} />
             </div>
 
-            {/* View Toggle */}
-            <div className="flex bg-slate-100 dark:bg-slate-700 rounded-xl p-1 shadow-inner">
+            {/* Mobile Action Buttons */}
+            <div className="flex items-center space-x-2 mb-4">
               <button
-                onClick={() => setViewMode("grid")}
-                className={`p-2.5 rounded-lg transition-all duration-200 ${
-                  viewMode === "grid" 
-                    ? "bg-white dark:bg-slate-600 shadow-sm text-blue-600 dark:text-blue-400" 
-                    : "text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white/50 dark:hover:bg-slate-600/50"
-                }`}
-                title="Grid view"
+                onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
+                className="flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-700 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                    d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" 
-                  />
+                  {viewMode === "grid" ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                  )}
                 </svg>
+                <span className="text-sm">{viewMode === "grid" ? "List View" : "Grid View"}</span>
               </button>
-              <button
-                onClick={() => setViewMode("list")}
-                className={`p-2.5 rounded-lg transition-all duration-200 ${
-                  viewMode === "list" 
-                    ? "bg-white dark:bg-slate-600 shadow-sm text-blue-600 dark:text-blue-400" 
-                    : "text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white/50 dark:hover:bg-slate-600/50"
-                }`}
-                title="List view"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                    d="M4 6h16M4 10h16M4 14h16M4 18h16" 
-                  />
-                </svg>
-              </button>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center space-x-2">
               <button
                 onClick={handleNewFolder}
-                className="p-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm"
-                title="Create new folder"
+                className="flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
+                <span className="text-sm">New Folder</span>
               </button>
               <button
                 onClick={() => fileInputRef.current && fileInputRef.current.click()}
-                className="p-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm"
-                title="Upload files"
+                className="flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
+                <span className="text-sm">Upload</span>
               </button>
             </div>
 
-            {/* Control Buttons */}
-            <div className="flex items-center space-x-2 border-l border-slate-200 dark:border-slate-600 pl-4">
+            {/* Mobile Control Buttons */}
+            <div className="flex items-center space-x-2">
               <button
                 onClick={handleRefresh}
                 disabled={loading}
-                className="p-2.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed border border-slate-200 dark:border-slate-600"
-                title="Refresh"
+                className="flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
+                <span className="text-sm">Refresh</span>
               </button>
               <button
                 onClick={handleDisconnect}
-                className="p-2.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 border border-red-200 dark:border-red-800"
-                title="Disconnect from S3"
+                className="flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
+                <span className="text-sm">Disconnect</span>
               </button>
             </div>
           </div>
-        </div>
+        )}
       </nav>
 
-      {/* Main Content Area with 10% spacing */}
-      <div className="flex-1 overflow-hidden relative px-[10%] py-6">
+      {/* Main Content Area with better spacing */}
+      <div className="flex-1 overflow-hidden relative px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
         {/* Selection Info */}
         {selectedItems.size > 0 && (
-          <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800 mb-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800 mb-4 space-y-3 sm:space-y-0">
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                 <span className="text-white text-sm font-medium">{selectedItems.size}</span>
               </div>
-              <span className="text-blue-800 dark:text-blue-200 font-medium">
+              <span className="text-blue-800 dark:text-blue-200 font-medium text-sm sm:text-base">
                 {selectedItems.size} item{selectedItems.size !== 1 ? "s" : ""} selected
               </span>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
               <button
                 onClick={handleDownload}
-                className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200 hover:scale-105 active:scale-95"
+                className="flex items-center space-x-2 px-3 sm:px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 flex-1 sm:flex-none justify-center"
                 title="Download selected"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -591,7 +684,7 @@ export default function FileExplorer({ onDisconnect }) {
                       setShareModal({ isOpen: true, file: selectedFile });
                     }
                   }}
-                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 hover:scale-105 active:scale-95"
+                  className="flex items-center space-x-2 px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 flex-1 sm:flex-none justify-center"
                   title="Share selected file"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -602,7 +695,7 @@ export default function FileExplorer({ onDisconnect }) {
               )}
               <button
                 onClick={handleDelete}
-                className="flex items-center space-x-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all duration-200 hover:scale-105 active:scale-95"
+                className="flex items-center space-x-2 px-3 sm:px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 flex-1 sm:flex-none justify-center"
                 title="Delete selected"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -612,13 +705,18 @@ export default function FileExplorer({ onDisconnect }) {
               </button>
               <button
                 onClick={() => setSelectedItems(new Set())}
-                className="px-4 py-2 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-all duration-200 text-sm"
+                className="flex items-center space-x-2 px-3 sm:px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all duration-200 flex-1 sm:flex-none justify-center"
+                title="Clear selection"
               >
-                Clear
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span className="text-sm">Clear</span>
               </button>
             </div>
           </div>
         )}
+
         {/* Drag and Drop Overlay */}
         {dragging && (
           <div className="absolute inset-0 z-50 bg-blue-500/10 border-2 border-dashed border-blue-400 rounded-xl m-4 flex items-center justify-center backdrop-blur-sm">
@@ -634,23 +732,9 @@ export default function FileExplorer({ onDisconnect }) {
 
         {/* Loading Overlay */}
         {loading && (
-          <div className="absolute inset-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm flex items-center justify-center z-40">
-            <div className="text-center p-8 bg-white/80 dark:bg-slate-800/80 rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-md">
-              <div className="relative mb-6">
-                <div className="w-16 h-16 mx-auto">
-                  <svg className="w-16 h-16 animate-spin text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                  </svg>
-                </div>
-                <div className="absolute inset-0 w-16 h-16 mx-auto border-4 border-blue-200 dark:border-blue-800 rounded-full animate-pulse"></div>
-              </div>
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
-                Loading Files...
-              </h3>
-              <p className="text-slate-600 dark:text-slate-400 text-sm">
-                Please wait while we refresh your files
-              </p>
+          <div className="fixed inset-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="text-center p-8 bg-white/90 dark:bg-slate-800/90 rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-md">
+              <LoadingSpinner size="xl" text="Loading Files..." />
             </div>
           </div>
         )}
