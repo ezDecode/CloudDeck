@@ -100,7 +100,12 @@ export default function ShareModal({ isOpen, onClose, selectedFile }) {
           </label>
           <select
             value={expiryTime}
-            onChange={(e) => setExpiryTime(e.target.value)}
+            onChange={(e) => {
+              setExpiryTime(e.target.value);
+              if (e.target.value === "custom") {
+                setCustomExpiryTime("1"); // Default to 1 hour for custom
+              }
+            }}
             className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value={1}>1 Hour</option>
@@ -114,6 +119,7 @@ export default function ShareModal({ isOpen, onClose, selectedFile }) {
             <input
               type="number"
               placeholder="Enter hours"
+              value={customExpiryTime}
               className="w-full mt-2 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               onChange={(e) => setCustomExpiryTime(e.target.value)}
             />
