@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Toaster, toast } from 'sonner';
 import { listObjects, getStoredCredentials, uploadFile, downloadFile, deleteObjects, initializeS3Client, clearS3Client } from "../../services/aws/s3Service";
 import FileList from "./FileList";
 import Breadcrumb from "./Breadcrumb";
@@ -8,13 +9,16 @@ import ImagePreview from "./ImagePreview";
 import ShareModal from "./ShareModal";
 import NewFolderModal from "./NewFolderModal";
 import DeleteConfirmModal from "./DeleteConfirmModal";
+import useSessionTimeout from "../../hooks/useSessionTimeout";
 
 export default function FileExplorer({ onDisconnect }) {
+  // Add session timeout hook - will redirect to login after 3 minutes of inactivity
+  useSessionTimeout(3);
+  
   const [files, setFiles] = useState([]);
   const [folders, setFolders] = useState([]);
   const [currentPath, setCurrentPath] = useState("");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [selectedItems, setSelectedItems] = useState(new Set());
   const [viewMode, setViewMode] = useState("grid"); // grid or list
   const [uploadProgress, setUploadProgress] = useState({});
@@ -36,7 +40,7 @@ export default function FileExplorer({ onDisconnect }) {
 
     const credentials = getStoredCredentials();
     if (!credentials) {
-      setError("No credentials found. Please connect to S3 first.");
+      toast.error("No credentials found. Please connect to S3 first.");
       return;
     }
 
@@ -44,7 +48,7 @@ export default function FileExplorer({ onDisconnect }) {
     try {
       initializeS3Client(credentials);
     } catch (initError) {
-      setError("Failed to initialize S3 client. Please check your credentials.");
+      toast.error("Failed to initialize S3 client. Please check your credentials.");
       return;
     }
 
@@ -56,6 +60,7 @@ export default function FileExplorer({ onDisconnect }) {
       });
 
       if (result.success) {
+        toast.success(`Successfully uploaded ${file.name}`);
         setUploadProgress(prev => {
           const newProgress = { ...prev };
           delete newProgress[key];
@@ -63,7 +68,7 @@ export default function FileExplorer({ onDisconnect }) {
         });
         loadFiles(); // Refresh file list
       } else {
-        setError(`Failed to upload ${file.name}`);
+        toast.error(`Failed to upload ${file.name}`);
         setUploadProgress(prev => {
           const newProgress = { ...prev };
           delete newProgress[key];
@@ -81,7 +86,7 @@ export default function FileExplorer({ onDisconnect }) {
   const handleDownload = async () => {
     const credentials = getStoredCredentials();
     if (!credentials) {
-      setError("No credentials found. Please connect to S3 first.");
+      toast.error("No credentials found. Please connect to S3 first.");
       return;
     }
 
@@ -89,7 +94,7 @@ export default function FileExplorer({ onDisconnect }) {
     try {
       initializeS3Client(credentials);
     } catch (initError) {
-      setError("Failed to initialize S3 client. Please check your credentials.");
+      toast.error("Failed to initialize S3 client. Please check your credentials.");
       return;
     }
 
@@ -102,8 +107,9 @@ export default function FileExplorer({ onDisconnect }) {
         document.body.appendChild(link);
         link.click();
         link.remove();
+        toast.success(`Successfully downloaded ${key.split("/").pop()}`);
       } else {
-        setError(`Failed to download ${key}`);
+        toast.error(`Failed to download ${key}`);
       }
     }
   };
@@ -120,6 +126,7 @@ export default function FileExplorer({ onDisconnect }) {
   const handleDeleteComplete = () => {
     setSelectedItems(new Set());
     loadFiles();
+    toast.success("Files deleted successfully.");
   };
 
   const handleDisconnect = () => {
@@ -184,7 +191,7 @@ export default function FileExplorer({ onDisconnect }) {
     if (item.type === "image") {
       const credentials = getStoredCredentials();
       if (!credentials) {
-        setError("No credentials found. Please connect to S3 first.");
+        toast.error("No credentials found. Please connect to S3 first.");
         return;
       }
 
@@ -192,7 +199,7 @@ export default function FileExplorer({ onDisconnect }) {
       try {
         initializeS3Client(credentials);
       } catch (initError) {
-        setError("Failed to initialize S3 client. Please check your credentials.");
+        toast.error("Failed to initialize S3 client. Please check your credentials.");
         return;
       }
 
@@ -205,12 +212,11 @@ export default function FileExplorer({ onDisconnect }) {
 
   const loadFiles = React.useCallback(async () => {
     setLoading(true);
-    setError("");
     
     try {
       const credentials = getStoredCredentials();
       if (!credentials) {
-        setError("No credentials found. Please connect to S3 first.");
+        toast.error("No credentials found. Please connect to S3 first.");
         setLoading(false);
         return;
       }
@@ -219,7 +225,7 @@ export default function FileExplorer({ onDisconnect }) {
       try {
         initializeS3Client(credentials);
       } catch (initError) {
-        setError("Failed to initialize S3 client. Please check your credentials.");
+        toast.error("Failed to initialize S3 client. Please check your credentials.");
         setLoading(false);
         return;
       }
@@ -249,10 +255,10 @@ export default function FileExplorer({ onDisconnect }) {
         setFiles(fileList);
         setFolders(folderList);
       } else {
-        setError(result.message || "Failed to load files");
+        toast.error(result.message || "Failed to load files");
       }
     } catch (err) {
-      setError("Failed to load files. Please check your connection.");
+      toast.error("Failed to load files. Please check your connection.");
       console.error("Load files error:", err);
     } finally {
       setLoading(false);
@@ -362,33 +368,6 @@ export default function FileExplorer({ onDisconnect }) {
     );
   }
 
-  if (error && files.length === 0 && folders.length === 0) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-        <div className="text-center max-w-md mx-auto p-8">
-          <div className="w-24 h-24 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg className="w-12 h-12 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 19c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
-          </div>
-          <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-3">
-            Connection Error
-          </h3>
-          <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">{error}</p>
-          <button
-            onClick={handleRefresh}
-            className="inline-flex items-center space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            <span>Try Again</span>
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div
       className={`h-full flex flex-col bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 ${dragging ? "ring-2 ring-blue-400 bg-blue-50 dark:bg-blue-900/20" : ""} transition-all duration-300`}
@@ -397,6 +376,58 @@ export default function FileExplorer({ onDisconnect }) {
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
+      <Toaster 
+        richColors 
+        position="bottom-right"
+        toastOptions={{
+          style: {
+            background: 'linear-gradient(to bottom right, #171717, #262626)',
+            color: '#FAFAFA',
+            border: '1px solid #404040',
+            borderRadius: '12px',
+            padding: '16px',
+            fontFamily: 'Satoshi, sans-serif',
+            fontSize: '14px',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)',
+          },
+          icon: <div style={{ 
+            width: '20px',
+            height: '20px',
+            borderRadius: '50%',
+            background: 'linear-gradient(to top left, #4F46E5, #818CF8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+          }}>
+            <svg 
+              width="12" 
+              height="12" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+              style={{ color: '#FFFFFF' }}
+            >
+              <path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+            </svg>
+          </div>,
+          closeButton: true,
+          closeButtonProps: {
+            style: {
+              background: 'transparent',
+              border: 'none',
+              color: '#A3A3A3',
+              cursor: 'pointer',
+              padding: '4px',
+              borderRadius: '50%',
+              transition: 'background-color 0.2s',
+            },
+          },
+        }}
+      />
       {/* Navigation Bar */}
       <nav className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-md border-b border-slate-200/50 dark:border-slate-700/50 px-4 sm:px-6 lg:px-8 py-3 sm:py-4 shadow-sm">
         <div className="flex items-center justify-between">
@@ -435,134 +466,52 @@ export default function FileExplorer({ onDisconnect }) {
 
             {/* Desktop Controls */}
             <div className="hidden sm:flex items-center space-x-4">
-              {/* Search Bar */}
-              <div className="relative">
-                <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <input
-                  type="text"
-                  placeholder="Search files and folders..."
-                  className="pl-10 pr-4 py-2.5 w-64 lg:w-80 border border-slate-200 dark:border-slate-600 rounded-xl bg-white/70 dark:bg-slate-700/70 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-
-              {/* Filter Button */}
-              <div className="relative">
-                <button
-                  onClick={() => setShowFilterMenu(!showFilterMenu)}
-                  className="flex items-center space-x-2 px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl bg-white/70 dark:bg-slate-700/70 text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 transition-all duration-200 backdrop-blur-sm"
-                  title="Filter files"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z" />
-                  </svg>
-                  <span className="text-sm hidden lg:inline">{fileTypeOptions.find(opt => opt.value === fileTypeFilter)?.label}</span>
-                  <svg className={`w-3 h-3 transition-transform duration-200 ${showFilterMenu ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                
-                {/* Filter Dropdown */}
-                {showFilterMenu && (
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 z-50 backdrop-blur-sm">
-                    {fileTypeOptions.map(option => (
-                      <button
-                        key={option.value}
-                        onClick={() => {
-                          setFileTypeFilter(option.value);
-                          setShowFilterMenu(false);
-                        }}
-                        className={`w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors duration-200 flex items-center space-x-3 first:rounded-t-xl last:rounded-b-xl ${
-                          fileTypeFilter === option.value ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400" : "text-slate-700 dark:text-slate-200"
-                        }`}
-                      >
-                        <span className="text-base">{option.icon}</span>
-                        <span>{option.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* View Toggle */}
-              <div className="hidden lg:flex bg-slate-100 dark:bg-slate-700 rounded-xl p-1 shadow-inner">
-                <button
-                  onClick={() => setViewMode("grid")}
-                  className={`p-2.5 rounded-lg transition-all duration-200 ${
-                    viewMode === "grid" 
-                      ? "bg-white dark:bg-slate-600 shadow-sm text-blue-600 dark:text-blue-400" 
-                      : "text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white/50 dark:hover:bg-slate-600/50"
-                  }`}
-                  title="Grid view"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                      d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" 
-                    />
-                  </svg>
-                </button>
-                <button
-                  onClick={() => setViewMode("list")}
-                  className={`p-2.5 rounded-lg transition-all duration-200 ${
-                    viewMode === "list" 
-                      ? "bg-white dark:bg-slate-600 shadow-sm text-blue-600 dark:text-blue-400" 
-                      : "text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white/50 dark:hover:bg-slate-600/50"
-                  }`}
-                  title="List view"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                      d="M4 6h16M4 10h16M4 14h16M4 18h16" 
-                    />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center space-x-2">
+              {/* Action Buttons - Expanded spacing */}
+              <div className="flex items-center space-x-3">
                 <button
                   onClick={handleNewFolder}
-                  className="p-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm"
+                  className="p-3 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm flex items-center space-x-2"
                   title="Create new folder"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
+                  <span className="font-medium text-sm">New Folder</span>
                 </button>
                 <button
                   onClick={() => fileInputRef.current && fileInputRef.current.click()}
-                  className="p-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm"
+                  className="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 shadow-sm flex items-center space-x-2"
                   title="Upload files"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
+                  <span className="font-medium text-sm">Upload</span>
                 </button>
               </div>
 
-              {/* Control Buttons */}
-              <div className="flex items-center space-x-2 border-l border-slate-200 dark:border-slate-600 pl-4">
+              {/* Control Buttons - Expanded spacing */}
+              <div className="flex items-center space-x-3 border-l border-slate-200 dark:border-slate-600 pl-4">
                 <button
                   onClick={handleRefresh}
                   disabled={loading}
-                  className="p-2.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed border border-slate-200 dark:border-slate-600"
+                  className="p-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed border border-slate-200 dark:border-slate-600 flex items-center space-x-2"
                   title="Refresh"
                 >
                   <svg className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
+                  <span className="font-medium text-sm">Refresh</span>
                 </button>
                 <button
                   onClick={handleDisconnect}
-                  className="p-2.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 border border-red-200 dark:border-red-800"
+                  className="p-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 border border-red-200 dark:border-red-800 flex items-center space-x-2"
                   title="Disconnect from S3"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                   </svg>
+                  <span className="font-medium text-sm">Disconnect</span>
                 </button>
               </div>
             </div>
@@ -572,20 +521,6 @@ export default function FileExplorer({ onDisconnect }) {
         {/* Mobile Menu */}
         {showMobileMenu && (
           <div className="sm:hidden mt-4 p-4 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700">
-            {/* Mobile Search */}
-            <div className="relative mb-4">
-              <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input
-                type="text"
-                placeholder="Search files and folders..."
-                className="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-lg bg-white/70 dark:bg-slate-700/70 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-
             {/* Mobile Breadcrumb */}
             <div className="mb-4">
               <Breadcrumb path={currentPath} onNavigate={setCurrentPath} />
@@ -593,19 +528,6 @@ export default function FileExplorer({ onDisconnect }) {
 
             {/* Mobile Action Buttons */}
             <div className="flex items-center space-x-2 mb-4">
-              <button
-                onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
-                className="flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-700 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  {viewMode === "grid" ? (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                  ) : (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                  )}
-                </svg>
-                <span className="text-sm">{viewMode === "grid" ? "List View" : "Grid View"}</span>
-              </button>
               <button
                 onClick={handleNewFolder}
                 className="flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
@@ -703,16 +625,29 @@ export default function FileExplorer({ onDisconnect }) {
                 </svg>
                 <span className="text-sm">Delete</span>
               </button>
-              <button
-                onClick={() => setSelectedItems(new Set())}
-                className="flex items-center space-x-2 px-3 sm:px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all duration-200 flex-1 sm:flex-none justify-center"
-                title="Clear selection"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-                <span className="text-sm">Clear</span>
-              </button>
+              {selectedItems.size === files.length + folders.length ? (
+                <button
+                  onClick={() => setSelectedItems(new Set())}
+                  className="flex items-center space-x-2 px-3 sm:px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all duration-200 flex-1 sm:flex-none justify-center"
+                  title="Clear selection"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  <span className="text-sm">Clear Selection</span>
+                </button>
+              ) : (
+                <button
+                  onClick={handleSelectAll}
+                  className="flex items-center space-x-2 px-3 sm:px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all duration-200 flex-1 sm:flex-none justify-center"
+                  title="Select all"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-sm">Select All</span>
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -745,6 +680,7 @@ export default function FileExplorer({ onDisconnect }) {
             files={filteredFiles}
             folders={filteredFolders}
             viewMode={viewMode}
+            setViewMode={setViewMode}
             selectedItems={selectedItems}
             onNavigateToFolder={navigateToFolder}
             onSelectItem={handleSelectItem}
@@ -756,6 +692,11 @@ export default function FileExplorer({ onDisconnect }) {
             onPreview={handlePreview}
             onDragDropClick={() => fileInputRef.current && fileInputRef.current.click()}
             onCreateFolderClick={handleNewFolder}
+            fileTypeFilter={fileTypeFilter}
+            setFileTypeFilter={setFileTypeFilter}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            fileTypeOptions={fileTypeOptions}
           />
         </div>
       </div>

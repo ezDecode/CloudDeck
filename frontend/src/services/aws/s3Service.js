@@ -13,6 +13,14 @@ export const getStoredCredentials = () => {
 };
 
 /**
+ * Clear stored credentials from localStorage
+ */
+export const clearStoredCredentials = () => {
+  localStorage.removeItem("awsCredentials");
+  s3Client = null;
+};
+
+/**
  * Initialize S3 client with credentials
  */
 export const initializeS3Client = (credentials) => {
@@ -379,11 +387,19 @@ export const generateCORSConfig = (allowedOrigins = []) => {
  * @param {number} expiresIn - Expiration time in seconds (default: 24 hours)
  * @returns {Promise<{success: boolean, url?: string, message?: string, error?: any}>}
  */
-export const generateShareableLink = async (bucket, key, expiresIn = 86400) => {
+export const generateShareableLink = async (bucket, key, expiresIn = 86400, password = null) => {
   try {
     const client = getS3Client();
     const command = new GetObjectCommand({ Bucket: bucket, Key: key });
-    const url = await getSignedUrl(client, command, { expiresIn });
+    let url = await getSignedUrl(client, command, { expiresIn });
+
+    if (password) {
+      // In a real-world scenario, you would use a backend service to handle password protection.
+      // For this example, we'll add the password as a query parameter for demonstration purposes.
+      // This is NOT a secure way to handle passwords.
+      url += `&password=${encodeURIComponent(password)}`;
+    }
+
     return { 
       success: true, 
       url,

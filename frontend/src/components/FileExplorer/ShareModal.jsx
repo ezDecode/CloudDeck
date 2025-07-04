@@ -5,6 +5,8 @@ import { getStoredCredentials } from "../../services/aws/s3Service";
 export default function ShareModal({ isOpen, onClose, selectedFile }) {
   const [shareLink, setShareLink] = useState("");
   const [expiryTime, setExpiryTime] = useState(24); // 24 hours default
+  const [customExpiryTime, setCustomExpiryTime] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
@@ -20,8 +22,8 @@ export default function ShareModal({ isOpen, onClose, selectedFile }) {
         return;
       }
 
-      const expiresIn = expiryTime * 3600; // Convert hours to seconds
-      const result = await generateShareableLink(credentials.bucket, selectedFile.key, expiresIn);
+      const expiresIn = (expiryTime === "custom" ? customExpiryTime : expiryTime) * 3600; // Convert hours to seconds
+      const result = await generateShareableLink(credentials.bucket, selectedFile.key, expiresIn, password);
       
       if (result.success) {
         setShareLink(result.url);
@@ -98,7 +100,7 @@ export default function ShareModal({ isOpen, onClose, selectedFile }) {
           </label>
           <select
             value={expiryTime}
-            onChange={(e) => setExpiryTime(Number(e.target.value))}
+            onChange={(e) => setExpiryTime(e.target.value)}
             className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value={1}>1 Hour</option>
@@ -106,7 +108,28 @@ export default function ShareModal({ isOpen, onClose, selectedFile }) {
             <option value={24}>24 Hours</option>
             <option value={168}>1 Week</option>
             <option value={720}>1 Month</option>
+            <option value="custom">Custom</option>
           </select>
+          {expiryTime === "custom" && (
+            <input
+              type="number"
+              placeholder="Enter hours"
+              className="w-full mt-2 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={(e) => setCustomExpiryTime(e.target.value)}
+            />
+          )}
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            Password (Optional)
+          </label>
+          <input
+            type="password"
+            placeholder="Enter password"
+            className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={(e) => setPassword(e.target.value)}
+          />
         </div>
 
         {error && (
