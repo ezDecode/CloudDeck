@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
-import { testConnection, initializeS3Client, clearS3Client } from '../../services/aws/s3Service';
+import { getStoredCredentials, clearStoredCredentials } from '../../utils/authUtils';
 
 const AuthModal = ({ isOpen, onClose, onConnect }) => {
   const [accessKey, setAccessKey] = useState('');
@@ -38,6 +38,7 @@ const AuthModal = ({ isOpen, onClose, onConnect }) => {
     setErrorDetails(null);
     
     try {
+      const { testConnection, initializeS3Client } = await import('../../services/aws/s3Service');
       const result = await testConnection(credentials);
       
       if (result.success) {
@@ -77,8 +78,9 @@ const AuthModal = ({ isOpen, onClose, onConnect }) => {
     }
   }, [isOpen]);
 
-  const handleDisconnect = () => {
+  const handleDisconnect = async () => {
     localStorage.removeItem(LOCAL_STORAGE_KEY);
+    const { clearS3Client } = await import('../../services/aws/s3Service');
     clearS3Client();
     setAccessKey("");
     setSecretKey("");

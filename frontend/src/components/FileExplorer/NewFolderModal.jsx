@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { createFolder } from "../../services/aws/s3Service";
-import { getStoredCredentials, initializeS3Client } from "../../services/aws/s3Service";
+import { getStoredCredentials } from "../../utils/authUtils";
 
 export default function NewFolderModal({ isOpen, onClose, currentPath, onFolderCreated }) {
   const [folderName, setFolderName] = useState("");
@@ -31,12 +30,14 @@ export default function NewFolderModal({ isOpen, onClose, currentPath, onFolderC
 
       // Initialize S3 client if not already initialized
       try {
+        const { initializeS3Client } = await import("../../services/aws/s3Service");
         initializeS3Client(credentials);
       } catch (e) {
         setError("Failed to initialize S3 client. Please check your credentials.");
         return;
       }
 
+      const { createFolder } = await import("../../services/aws/s3Service");
       const folderPath = `${currentPath}${folderName}/`;
       const result = await createFolder(credentials.bucketName, folderPath);
 

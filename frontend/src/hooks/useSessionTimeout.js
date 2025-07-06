@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { clearStoredCredentials } from '../services/aws/s3Service';
+import { clearStoredCredentials } from '../utils/authUtils';
 
 /**
  * Hook to handle session timeout after inactivity

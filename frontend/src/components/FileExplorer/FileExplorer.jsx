@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Toaster, toast } from 'sonner';
-import { listObjects, getStoredCredentials, smartUploadFile, downloadFile, initializeS3Client, clearS3Client } from "../../services/aws/s3Service";
+import { getStoredCredentials, clearStoredCredentials } from "../../utils/authUtils";
 import FileList from "./FileList";
 import Breadcrumb from "./Breadcrumb";
 import LoadingSpinner from "../common/LoadingSpinner";
@@ -44,6 +44,7 @@ export default function FileExplorer({ onDisconnect }) {
 
     // Initialize S3 client if not already initialized
     try {
+      const { initializeS3Client } = await import("../../services/aws/s3Service");
       initializeS3Client(credentials);
     } catch (_error) {
       toast.error("Failed to initialize S3 client. Please check your credentials.");
@@ -55,6 +56,7 @@ export default function FileExplorer({ onDisconnect }) {
       setUploadProgress(prev => ({ ...prev, [key]: 0 }));
       
       try {
+        const { smartUploadFile } = await import("../../services/aws/s3Service");
         const result = await smartUploadFile(credentials.bucketName, key, file, (progressData) => {
           // Handle both old number format and new object format
           setUploadProgress(prev => ({ ...prev, [key]: progressData }));
@@ -102,6 +104,7 @@ export default function FileExplorer({ onDisconnect }) {
 
     // Initialize S3 client if not already initialized
     try {
+      const { initializeS3Client } = await import("../../services/aws/s3Service");
       initializeS3Client(credentials);
     } catch (_error) {
       toast.error("Failed to initialize S3 client. Please check your credentials.");
@@ -109,6 +112,7 @@ export default function FileExplorer({ onDisconnect }) {
     }
 
     for (const item of items) {
+      const { downloadFile } = await import("../../services/aws/s3Service");
       const result = await downloadFile(credentials.bucketName, item.key);
       if (result.success) {
         const link = document.createElement("a");
@@ -166,6 +170,7 @@ export default function FileExplorer({ onDisconnect }) {
     localStorage.removeItem("awsCredentials");
     
     // Clear S3 client instance
+    const { clearS3Client } = import("../../services/aws/s3Service");
     clearS3Client();
     
     // Call the onDisconnect callback to update parent component
@@ -174,7 +179,7 @@ export default function FileExplorer({ onDisconnect }) {
     }
   };
 
-  const handleShare = (item) => {
+  const handleShare = async (item) => {
     if (item && item.type !== "folder") {
       setShareModal({ isOpen: true, file: item });
     } else if (selectedItems.size === 1) {
@@ -234,12 +239,14 @@ export default function FileExplorer({ onDisconnect }) {
 
       // Initialize S3 client if not already initialized
       try {
+        const { initializeS3Client } = await import("../../services/aws/s3Service");
         initializeS3Client(credentials);
       } catch (_error) {
         toast.error("Failed to initialize S3 client. Please check your credentials.");
         return;
       }
 
+      const { downloadFile } = await import("../../services/aws/s3Service");
       const result = await downloadFile(credentials.bucketName, item.key);
       if (result.success) {
         setPreviewMedia({ src: result.url, type: item.type });
@@ -260,6 +267,7 @@ export default function FileExplorer({ onDisconnect }) {
 
       // Initialize S3 client if not already initialized
       try {
+        const { initializeS3Client } = await import("../../services/aws/s3Service");
         initializeS3Client(credentials);
       } catch (_error) {
         toast.error("Failed to initialize S3 client. Please check your credentials.");
@@ -267,6 +275,7 @@ export default function FileExplorer({ onDisconnect }) {
         return;
       }
 
+      const { listObjects } = await import("../../services/aws/s3Service");
       const result = await listObjects(credentials.bucketName, currentPath);
       
       if (result.success) {

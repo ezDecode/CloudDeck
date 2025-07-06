@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { deleteObjects } from "../../services/aws/s3Service";
-import { getStoredCredentials, initializeS3Client } from "../../services/aws/s3Service";
+import { getStoredCredentials } from "../../utils/authUtils";
 
 export default function DeleteConfirmModal({ isOpen, onClose, selectedItems, onDeleteComplete }) {
   const [loading, setLoading] = useState(false);
@@ -19,12 +18,14 @@ export default function DeleteConfirmModal({ isOpen, onClose, selectedItems, onD
 
       // Initialize S3 client if not already initialized
       try {
+        const { initializeS3Client } = await import("../../services/aws/s3Service");
         initializeS3Client(credentials);
       } catch (_error) {
         setError("Failed to initialize S3 client. Please check your credentials.");
         return;
       }
 
+      const { deleteObjects } = await import("../../services/aws/s3Service");
       const keys = Array.from(selectedItems).map(item => item.key);
       const result = await deleteObjects(credentials.bucketName, keys);
       

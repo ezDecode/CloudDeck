@@ -16,9 +16,6 @@ const SetupGuide = () => {
 
   return (
     <div className="bg-primary-bg min-h-screen py-8 sm:py-12 px-4 sm:px-6 lg:px-8 relative">
-      <div className="absolute top-8 left-8">
-        <Link to="/" className="text-blue-500 hover:underline"> &larr; Back to Home</Link>
-      </div>
       <div className="max-w-4xl mx-auto bg-neutral-white rounded-lg shadow-lg p-6 sm:p-8 md:p-12 border border-neutral-borders">
         <h1 className="text-3xl sm:text-4xl font-bold text-text-primary mb-6 sm:mb-8 text-center">CloudDeck Setup Guide</h1>
         

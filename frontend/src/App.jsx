@@ -4,7 +4,7 @@ import Hero from './components/Hero/Hero';
 import AuthModal from './components/AuthModal/AuthModal';
 import FileExplorer from "./components/FileExplorer/FileExplorer";
 import SetupGuide from './components/SetupGuide/SetupGuide'; // Import the new component
-import { getStoredCredentials, clearStoredCredentials } from "./services/aws/s3Service";
+import { getStoredCredentials, clearStoredCredentials } from "./utils/authUtils";
 
 function App() {
   const [connected, setConnected] = useState(!!getStoredCredentials());

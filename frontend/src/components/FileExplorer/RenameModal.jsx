@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { getStoredCredentials, initializeS3Client } from "../../services/aws/s3Service";
+import { getStoredCredentials, initializeS3Client, getS3Client } from "../../services/aws/s3Service";
+import { CopyObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { toast } from 'sonner';
 
 export default function RenameModal({ isOpen, onClose, selectedItem, currentPath, onRenameComplete }) {
@@ -63,9 +64,7 @@ export default function RenameModal({ isOpen, onClose, selectedItem, currentPath
       pathParts[pathParts.length - 1] = newName;
       const newKey = pathParts.join('/');
 
-      // Import the required AWS SDK functions
-      const { CopyObjectCommand, DeleteObjectCommand } = await import("@aws-sdk/client-s3");
-      const { getS3Client } = await import("../../services/aws/s3Service");
+      
       
       const s3Client = getS3Client();
 

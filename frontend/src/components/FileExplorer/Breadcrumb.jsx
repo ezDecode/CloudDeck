@@ -1,5 +1,5 @@
 import React from "react";
-import { getStoredCredentials } from "../../services/aws/s3Service";
+import { getStoredCredentials } from "../../utils/authUtils";
 
 export default function Breadcrumb({ path, onNavigate }) {
   const parts = path.split("/").filter(Boolean);

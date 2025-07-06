@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { generateShareableLink } from "../../services/aws/s3Service";
-import { getStoredCredentials } from "../../services/aws/s3Service";
+import { getStoredCredentials } from "../../utils/authUtils";
 
 export default function ShareModal({ isOpen, onClose, selectedFile }) {
   const [shareLink, setShareLink] = useState("");
@@ -44,6 +43,7 @@ export default function ShareModal({ isOpen, onClose, selectedFile }) {
       }
 
       const expiresInSeconds = getExpiresInSeconds();
+      const { generateShareableLink } = await import("../../services/aws/s3Service");
       const result = await generateShareableLink(credentials.bucketName, selectedFile.key, expiresInSeconds, password);
       
       if (result.success) {
