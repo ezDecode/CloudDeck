@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Hero = ({ onConnectWallet }) => {
   return (
@@ -17,12 +18,21 @@ const Hero = ({ onConnectWallet }) => {
         </p>
         
         {/* CTA Button */}
-        <button 
-          onClick={onConnectWallet}
-          className="bg-text-primary text-neutral-white text-[18px] md:text-[24px] font-[600] px-8 md:px-12 py-4 md:py-6 rounded-[32px] border-none cursor-pointer transition-all duration-300 hover:bg-[#333333] transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-text-primary/30 shadow-lg hover:shadow-xl"
-        >
-          Add your bucket
-        </button>
+        <div className="flex justify-center gap-4">
+          <button 
+            onClick={onConnectWallet}
+            className="bg-text-primary text-neutral-white text-[18px] md:text-[24px] font-[600] px-8 md:px-12 py-4 md:py-6 rounded-[32px] border-none cursor-pointer transition-all duration-300 hover:bg-[#333333] transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-text-primary/30 shadow-lg hover:shadow-xl"
+          >
+            Add your bucket
+          </button>
+          <Link to="/setup-guide">
+            <button 
+              className="bg-transparent text-text-primary text-[18px] md:text-[24px] font-[600] px-8 md:px-12 py-4 md:py-6 rounded-[32px] border-2 border-text-primary cursor-pointer transition-all duration-300 hover:bg-text-primary hover:text-neutral-white transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-text-primary/30 shadow-lg hover:shadow-xl"
+            >
+              Setup Guide
+            </button>
+          </Link>
+        </div>
       </div>
     </div>
   );
