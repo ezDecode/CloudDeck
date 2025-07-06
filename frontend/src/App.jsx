@@ -1,27 +1,45 @@
 import { useState } from 'react';
-import CredentialManager from "./components/CredentialManager/CredentialManager";
+import Hero from './components/Hero/Hero';
+import AuthModal from './components/AuthModal/AuthModal';
 import FileExplorer from "./components/FileExplorer/FileExplorer";
-import { getStoredCredentials } from "./services/aws/s3Service";
+import { getStoredCredentials, clearStoredCredentials } from "./services/aws/s3Service";
 
 function App() {
   const [connected, setConnected] = useState(!!getStoredCredentials());
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const handleConnectionChange = (credentials) => {
-    setConnected(!!credentials);
+    if (credentials) {
+      // Store credentials in localStorage
+      localStorage.setItem("awsCredentials", JSON.stringify(credentials));
+      setConnected(true);
+      setIsAuthModalOpen(false);
+    }
   };
 
   const handleDisconnect = () => {
+    clearStoredCredentials();
     setConnected(false);
   };
 
+  const openAuthModal = () => setIsAuthModalOpen(true);
+  const closeAuthModal = () => setIsAuthModalOpen(false);
+
   return (
-    <div className="min-h-screen w-full overflow-hidden">
+    <div className="min-h-screen w-full">
       {!connected ? (
-        <CredentialManager onConnect={handleConnectionChange} />
+        <>
+          <Hero onConnectWallet={openAuthModal} />
+          <AuthModal 
+            isOpen={isAuthModalOpen} 
+            onClose={closeAuthModal} 
+            onConnect={handleConnectionChange} 
+          />
+        </>
       ) : (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4">
+        <div className="min-h-screen bg-primary-bg p-4">
           <div className="max-w-7xl mx-auto h-full">
-            <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-700 h-full min-h-[calc(100vh-2rem)]">
+            <div className="bg-neutral-white rounded-card shadow-lg overflow-hidden border border-neutral-borders h-full min-h-[calc(100vh-2rem)]">
               <FileExplorer onDisconnect={handleDisconnect} />
             </div>
           </div>

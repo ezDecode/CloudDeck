@@ -1,6 +1,14 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import FileIcon from "./FileIcon";
 import { formatFileSize, formatDate } from "../../utils/formatters";
+
+// Helper function to determine if a file is an image or video
+const isImageOrVideo = (fileName) => {
+  const imageExtensions = ["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg"];
+  const videoExtensions = ["mp4", "mov", "avi", "mkv", "webm"];
+  const extension = fileName.split(".").pop().toLowerCase();
+  return imageExtensions.includes(extension) || videoExtensions.includes(extension);
+};
 
 export default function FileItem({
   item,
@@ -8,8 +16,11 @@ export default function FileItem({
   onSelect,
   onNavigate,
   viewMode,
-  onContextMenu,
   onPreview,
+  onDownload,
+  onShare,
+  onDelete,
+  onRename,
 }) {
   const handleClick = (e) => {
     if (e.ctrlKey || e.metaKey) {
@@ -22,18 +33,39 @@ export default function FileItem({
   const handleDoubleClick = () => {
     if (item.type === "folder") {
       onNavigate();
-    } else {
-      onPreview();
     }
   };
 
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef(null);
+
+  const handleMenuToggle = (e) => {
+    e.stopPropagation();
+    setShowMenu(!showMenu);
+  };
+
+  const handleCloseMenu = () => {
+    setShowMenu(false);
+  };
+
+  useEffect(() => {
+    if (showMenu) {
+      document.addEventListener("click", handleCloseMenu);
+    } else {
+      document.removeEventListener("click", handleCloseMenu);
+    }
+    return () => {
+      document.removeEventListener("click", handleCloseMenu);
+    };
+  }, [showMenu]);
+
   if (viewMode === "list") {
+    const isPreviewable = item.type !== "folder" && isImageOrVideo(item.name);
     return (
       <tr
-        className={`hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer ${isSelected ? "bg-primary-50 dark:bg-primary-900" : ""}`}
+        className={`hover:bg-secondary-bg cursor-pointer ${isSelected ? "bg-blue-50 ring-2 ring-blue-400" : ""}`}
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
-        onContextMenu={onContextMenu}
       >
         <td className="p-3">
           <input
@@ -48,115 +80,92 @@ export default function FileItem({
         </td>
         <td className="p-3">
           <div className="flex items-center gap-2">
-            <FileIcon type={item.type} size="sm" />
-            <span className="font-medium text-neutral-900 dark:text-neutral-100">{item.name}</span>
+            <FileIcon fileName={item.name} fileType={item.type} size="sm" />
+            <span className="font-regular text-text-primary">
+              {item.name}
+            </span>
+            {isPreviewable && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPreview(item);
+                }}
+                className="ml-2 p-1 rounded-full hover:bg-gray-200 text-gray-600"
+                title="Preview"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </button>
+            )}
           </div>
         </td>
-        <td className="p-3 text-sm text-neutral-600 dark:text-neutral-400">
+        <td className="p-3 text-sm text-text-secondary">
           {item.type === "folder" ? "-" : formatFileSize(item.size)}
         </td>
-        <td className="p-3 text-sm text-neutral-600 dark:text-neutral-400">
+        <td className="p-3 text-sm text-text-secondary">
           {item.lastModified ? formatDate(item.lastModified) : "-"}
         </td>
-        <td className="p-3">
+        <td className="p-3 relative text-center">
           <button
-            className="p-1 hover:bg-neutral-200 dark:hover:bg-neutral-600 rounded-md"
-            title="More actions"
-            onClick={(e) => {
-              e.stopPropagation();
-              onContextMenu(e);
-            }}
+            onClick={handleMenuToggle}
+            className={`p-2 rounded-full transition-colors duration-200 ${showMenu ? 'bg-neutral-borders' : 'hover:bg-secondary-bg'} text-text-primary`}
           >
-            <svg className="w-4 h-4 text-neutral-500 dark:text-neutral-400" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
             </svg>
           </button>
+          {showMenu && (
+            <div
+              ref={menuRef}
+              className="absolute right-0 mt-2 w-48 bg-secondary-bg border border-neutral-borders rounded-md shadow-lg z-50"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ul className="py-1">
+                <li
+                  className="px-4 py-2 hover:bg-neutral-borders cursor-pointer text-sm text-text-primary"
+                  onClick={() => {
+                    onDownload([item]);
+                    handleCloseMenu();
+                  }}
+                >
+                  Download
+                </li>
+                {item.type !== "folder" && (
+                  <li
+                    className="px-4 py-2 hover:bg-neutral-borders cursor-pointer text-sm text-text-primary"
+                    onClick={() => {
+                      onShare(item);
+                      handleCloseMenu();
+                    }}
+                  >
+                    Share
+                  </li>
+                )}
+                <li
+                  className="px-4 py-2 hover:bg-neutral-borders cursor-pointer text-sm text-text-primary"
+                  onClick={() => {
+                    onRename(item);
+                    handleCloseMenu();
+                  }}
+                >
+                  Rename
+                </li>
+                <li
+                  className="px-4 py-2 hover:bg-neutral-borders cursor-pointer text-sm text-accent-red"
+                  onClick={() => {
+                    onDelete([item]);
+                    handleCloseMenu();
+                  }}
+                >
+                  Delete
+                </li>
+              </ul>
+            </div>
+          )}
         </td>
       </tr>
     );
   }
-
-  if (viewMode === "mobile-list") {
-    return (
-      <div
-        className={`
-          flex items-center p-3 rounded-lg cursor-pointer transition-all duration-200
-          ${isSelected ? "bg-blue-50 dark:bg-blue-900/20 ring-2 ring-blue-400" : "hover:bg-slate-50 dark:hover:bg-slate-700/50"}
-        `}
-        onClick={handleClick}
-        onDoubleClick={handleDoubleClick}
-        onContextMenu={onContextMenu}
-      >
-        <input
-          type="checkbox"
-          className="rounded-md mr-3"
-          checked={isSelected}
-          onChange={(e) => {
-            e.stopPropagation();
-            onSelect();
-          }}
-        />
-        <div className="mr-3">
-          <FileIcon type={item.type} size="sm" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between">
-            <span className="font-medium text-slate-900 dark:text-slate-100 truncate">{item.name}</span>
-            <button
-              className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-md ml-2"
-              title="More actions"
-              onClick={(e) => {
-                e.stopPropagation();
-                onContextMenu(e);
-              }}
-            >
-              <svg className="w-4 h-4 text-slate-500 dark:text-slate-400" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-              </svg>
-            </button>
-          </div>
-          <div className="flex items-center space-x-4 text-xs text-slate-500 dark:text-slate-400 mt-1">
-            <span>{item.type === "folder" ? "Folder" : formatFileSize(item.size)}</span>
-            {item.lastModified && (
-              <span>{formatDate(item.lastModified)}</span>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Grid view
-  return (
-    <div
-      className={`
-        flex flex-col items-center p-3 sm:p-4 rounded-lg cursor-pointer transition-colors duration-200
-        ${isSelected ? "bg-blue-50 dark:bg-blue-900/20 ring-2 ring-blue-400" : "hover:bg-slate-50 dark:hover:bg-slate-700/50"}
-      `}
-      onClick={handleClick}
-      onDoubleClick={handleDoubleClick}
-      onContextMenu={onContextMenu}
-    >
-      <div className="relative">
-        <FileIcon type={item.type} size="lg" />
-        <input
-          type="checkbox"
-          className="absolute -top-1 -right-1 w-4 h-4 rounded-md"
-          checked={isSelected}
-          onChange={(e) => {
-            e.stopPropagation();
-            onSelect();
-          }}
-        />
-      </div>
-      <span className="mt-2 text-xs sm:text-sm text-center truncate w-full text-slate-900 dark:text-slate-100" title={item.name}>
-        {item.name}
-      </span>
-      {item.type !== "folder" && (
-        <span className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-          {formatFileSize(item.size)}
-        </span>
-      )}
-    </div>
-  );
 }

@@ -6,7 +6,6 @@ export default function FileList({
   files,
   folders,
   viewMode,
-  setViewMode,
   selectedItems,
   onNavigateToFolder,
   onSelectItem,
@@ -14,7 +13,6 @@ export default function FileList({
   currentPath,
   onNavigateUp,
   uploadProgress,
-  onContextMenu,
   onPreview,
   onDragDropClick,
   onCreateFolderClick,
@@ -23,6 +21,10 @@ export default function FileList({
   searchTerm,
   setSearchTerm,
   fileTypeOptions,
+  onDownload,
+  onShare,
+  onRename,
+  onDelete,
 }) {
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const allItems = [...folders, ...files];
@@ -32,43 +34,37 @@ export default function FileList({
 
   if (isEmpty) {
     return (
-      <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-slate-500 dark:text-slate-400 p-8">
+      <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-text-secondary p-8">
         <div className="max-w-md mx-auto text-center">
-          <div className="w-32 h-32 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-3xl flex items-center justify-center mb-8 mx-auto shadow-inner border border-slate-200 dark:border-slate-600">
-            <svg className="w-16 h-16 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-24 h-24 bg-secondary-bg rounded-[20px] flex items-center justify-center mb-8 mx-auto">
+            <svg className="w-12 h-12 text-text-placeholder" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                 d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
               />
             </svg>
           </div>
           
-          <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-3">
+          <h3 className="text-[24px] md:text-[32px] font-[400] text-text-primary mb-4 leading-[1.1]">
             This folder is empty
           </h3>
           
-          <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-8">
-            Get started by uploading your files here. You can drag and drop files directly or use the upload button above.
+          <p className="text-[16px] md:text-[18px] font-[300] text-text-secondary leading-relaxed mb-8">
+            Get started by uploading your files here. You can drag and drop files directly or use the upload button.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={onDragDropClick || (() => {})}
-              className="flex items-center justify-center space-x-2 px-4 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all duration-200 hover:scale-105 active:scale-95"
+              className="bg-text-primary text-neutral-white text-[16px] font-[400] px-6 py-3 rounded-[20px] transition-all duration-300 hover:bg-[#333333] transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-text-primary/30"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-              </svg>
-              <span className="text-sm font-medium">Upload Files</span>
+              Upload Files
             </button>
             
             <button
               onClick={onCreateFolderClick || (() => {})}
-              className="flex items-center justify-center space-x-2 px-4 py-3 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-lg border border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/30 transition-all duration-200 hover:scale-105 active:scale-95"
+              className="border border-text-primary text-text-primary text-[16px] font-[400] px-6 py-3 rounded-[20px] transition-all duration-300 hover:bg-text-primary hover:text-neutral-white transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-text-primary/30"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              <span className="text-sm font-medium">Create Folders</span>
+              Create Folder
             </button>
           </div>
         </div>
@@ -78,231 +74,154 @@ export default function FileList({
 
   return (
     <div className="h-full flex flex-col">
-      {/* File List Controls */}
-      <div className="flex flex-col sm:flex-row gap-2 sm:items-center justify-between mb-4 p-3 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border border-slate-100 dark:border-slate-700 rounded-xl">
-        {/* Search Bar */}
-        <div className="relative flex-1">
-          <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            type="text"
-            placeholder="Search files and folders..."
-            className="pl-10 pr-10 py-2 w-full border border-slate-200 dark:border-slate-600 rounded-xl bg-white/70 dark:bg-slate-700/70 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          {searchTerm && (
-            <button
-              onClick={() => setSearchTerm("")}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
-              title="Clear search"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          )}
+      {/* Simple Controls Bar */}
+      <div className="flex items-center justify-between px-6 md:px-8 py-4 border-b border-neutral-borders">
+        <div className="flex items-center space-x-4">
+          <span className="text-[16px] font-[400] text-text-primary">
+            {filteredItems.length} item{filteredItems.length !== 1 ? "s" : ""}
+          </span>
         </div>
-        
-        <div className="flex items-center space-x-2 mt-2 sm:mt-0">
-          {/* Filter Button */}
+
+        <div className="flex items-center space-x-4">
+          {/* Filter Dropdown */}
           <div className="relative">
             <button
               onClick={() => setShowFilterMenu(!showFilterMenu)}
-              className={`flex items-center space-x-2 px-3 py-2 border rounded-xl transition-all duration-200 backdrop-blur-sm ${
-                fileTypeFilter !== 'all'
-                  ? 'bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300'
-                  : 'bg-white/70 dark:bg-slate-700/70 border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700'
-              }`}
-              title="Filter files"
+              className="flex items-center space-x-2 p-2 border border-neutral-borders rounded-lg bg-neutral-white hover:bg-secondary-bg"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z" />
-              </svg>
-              <span className="text-sm">{fileTypeOptions.find(opt => opt.value === fileTypeFilter)?.label}</span>
-              <svg className={`w-3 h-3 transition-transform duration-200 ${showFilterMenu ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
+              <span>{fileTypeOptions.find(o => o.value === fileTypeFilter)?.label || "All Files"}</span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
             </button>
-            
-            {/* Filter Dropdown */}
             {showFilterMenu && (
-              <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 z-50 backdrop-blur-sm">
+              <div className="absolute right-0 mt-2 w-48 bg-neutral-white border border-neutral-borders rounded-lg shadow-lg z-20">
                 {fileTypeOptions.map(option => (
-                  <button
+                  <div
                     key={option.value}
                     onClick={() => {
                       setFileTypeFilter(option.value);
                       setShowFilterMenu(false);
                     }}
-                    className={`w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors duration-200 flex items-center space-x-3 first:rounded-t-xl last:rounded-b-xl ${
-                      fileTypeFilter === option.value ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400" : "text-slate-700 dark:text-slate-200"
-                    }`}
+                    className="p-2 hover:bg-secondary-bg cursor-pointer"
                   >
-                    <span className="text-base">{option.icon}</span>
-                    <span>{option.label}</span>
-                  </button>
+                    {option.label}
+                  </div>
                 ))}
               </div>
             )}
           </div>
-
-          {/* View Toggle */}
-          <div className="flex bg-slate-100 dark:bg-slate-700 rounded-xl p-1 shadow-inner">
-            <button
-              onClick={() => setViewMode("grid")}
-              className={`p-2 rounded-lg transition-all duration-200 ${
-                viewMode === "grid" 
-                  ? "bg-white dark:bg-slate-600 shadow-sm text-blue-600 dark:text-blue-400" 
-                  : "text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white/50 dark:hover:bg-slate-600/50"
-              }`}
-              title="Grid view"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                  d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" 
-                />
-              </svg>
-            </button>
-            <button
-              onClick={() => setViewMode("list")}
-              className={`p-2 rounded-lg transition-all duration-200 ${
-                viewMode === "list" 
-                  ? "bg-white dark:bg-slate-600 shadow-sm text-blue-600 dark:text-blue-400" 
-                  : "text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white/50 dark:hover:bg-slate-600/50"
-              }`}
-              title="List view"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                  d="M4 6h16M4 10h16M4 14h16M4 18h16" 
-                />
-              </svg>
-            </button>
+          {/* Search Input */}
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="p-2 border border-neutral-borders rounded-lg bg-neutral-white"
+            />
           </div>
+        </div>
+
+        {/* View Toggle */}
+         <div className="flex items-center space-x-4">
+           {/* Context Menu Actions for Selected Items */}
+           {selectedItems.size > 0 && (
+             <div className="flex items-center space-x-1 sm:space-x-2 mr-2 sm:mr-4">
+               {/* Select All Button */}
+               <button
+                 onClick={onSelectAll}
+                 className="p-1.5 sm:p-2 text-text-secondary hover:text-text-primary hover:bg-secondary-bg rounded-[10px] sm:rounded-[12px] transition-all duration-300"
+                 title={selectedItems.size === allItems.length ? "Unselect All" : "Select All"}
+               >
+                 Select All
+               </button>
+               <button
+                 onClick={onDownload}
+                 className="p-1.5 sm:p-2 text-text-secondary hover:text-text-primary hover:bg-secondary-bg rounded-[10px] sm:rounded-[12px] transition-all duration-300"
+                 title="Download"
+               >
+                 <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                 </svg>
+               </button>
+               
+               {selectedItems.size === 1 && (
+                 <>
+                   <button
+                     onClick={() => onShare()}
+                     className="hidden sm:flex p-1.5 sm:p-2 text-text-secondary hover:text-text-primary hover:bg-secondary-bg rounded-[10px] sm:rounded-[12px] transition-all duration-300"
+                     title="Share"
+                   >
+                     <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                     </svg>
+                   </button>
+                   
+                   <button
+                     onClick={() => onRename()}
+                     className="p-1.5 sm:p-2 text-text-secondary hover:text-text-primary hover:bg-secondary-bg rounded-[10px] sm:rounded-[12px] transition-all duration-300"
+                     title="Rename"
+                   >
+                     <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                     </svg>
+                   </button>
+                 </>
+               )}
+               
+               <button
+                 onClick={() => onDelete(Array.from(selectedItems))}
+                 className="p-1.5 sm:p-2 text-accent-red hover:bg-accent-red/10 rounded-[10px] sm:rounded-[12px] transition-all duration-300"
+                 title="Delete"
+               >
+                 <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                 </svg>
+               </button>
+               
+               <div className="h-4 sm:h-6 w-px bg-neutral-borders mx-1 sm:mx-2"></div>
+             </div>
+           )}
         </div>
       </div>
 
       {/* File List Content */}
-      {viewMode === "list" ? (
-        <div className="h-full overflow-hidden">
-          <div className="hidden sm:block">
-            <table className="min-w-full divide-y divide-slate-200/50 dark:divide-slate-700/50 h-full">
-              <thead className="bg-slate-50/80 dark:bg-slate-700/80 backdrop-blur-sm sticky top-0 z-10">
-                <tr className="text-left text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
-                  <th className="p-4 w-8">
-                    <input
-                      type="checkbox"
-                      className="rounded-md border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500"
-                      checked={selectedItems.size === allItems.length}
-                      onChange={onSelectAll}
-                    />
-                  </th>
-                  <th className="p-4">Name</th>
-                  <th className="p-4 w-32">Size</th>
-                  <th className="p-4 w-40">Modified</th>
-                  <th className="p-4 w-24">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm divide-y divide-slate-200/30 dark:divide-slate-700/30 overflow-y-auto">
-                {currentPath && (
-                  <tr
-                    className="hover:bg-slate-50/80 dark:hover:bg-slate-700/50 cursor-pointer transition-all duration-200"
-                    onClick={onNavigateUp}
-                  >
-                    <td className="p-4"></td>
-                    <td className="p-4 flex items-center gap-3">
-                      <div className="w-8 h-8 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center">
-                        <svg className="w-5 h-5 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                      </div>
-                      <span className="text-slate-700 dark:text-slate-200 font-medium">..</span>
-                    </td>
-                    <td className="p-4 text-sm text-slate-500 dark:text-slate-400">-</td>
-                    <td className="p-4 text-sm text-slate-500 dark:text-slate-400">-</td>
-                    <td className="p-4 text-sm text-slate-500 dark:text-slate-400">-</td>
-                  </tr>
-                )}
-                {Object.entries(uploadProgress).map(([key, progress]) => (
-                  <tr key={key}>
-                    <td colSpan="5" className="p-2">
-                      <UploadItem fileName={key.split("/").pop()} progress={progress} />
-                    </td>
-                  </tr>
-                ))}
-                {filteredItems.map((item) => (
-                  <FileItem
-                    key={item.key}
-                    item={item}
-                    isSelected={selectedItems.has(item.key)}
-                    onSelect={() => onSelectItem(item.key)}
-                    onNavigate={() => item.type === "folder" && onNavigateToFolder(item.key)}
-                    viewMode="list"
-                    onContextMenu={(e) => onContextMenu(e, item)}
-                    onPreview={() => onPreview(item)}
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
-          
-          {/* Mobile List View */}
-          <div className="sm:hidden h-full overflow-auto p-3">
-            <div className="space-y-2">
-              {currentPath && (
-                <div
-                  className="flex items-center p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg cursor-pointer transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-700"
-                  onClick={onNavigateUp}
-                >
-                  <div className="w-8 h-8 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center mr-3">
-                    <svg className="w-5 h-5 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="h-full overflow-auto">
+        <table className="min-w-full divide-y divide-neutral-borders">
+          <thead className="bg-secondary-bg sticky top-0 z-10">
+            <tr className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+              <th className="p-3 w-10 text-left"></th>
+              <th className="p-3 text-left">Name</th>
+              <th className="p-3 w-32 text-left">Size</th>
+              <th className="p-3 w-40 text-left">Modified</th>
+              <th className="p-3 w-24 text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="bg-neutral-white divide-y divide-neutral-borders">
+            {currentPath && (
+              <tr
+                className="hover:bg-secondary-bg cursor-pointer transition-all duration-200"
+                onClick={onNavigateUp}
+              >
+                <td className="p-3"></td>
+                <td className="p-3 flex items-center gap-3">
+                  <div className="w-8 h-8 bg-secondary-bg rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                     </svg>
                   </div>
-                  <span className="text-slate-700 dark:text-slate-200 font-medium">..</span>
-                </div>
-              )}
-              {Object.entries(uploadProgress).map(([key, progress]) => (
-                <div key={key} className="p-2">
-                  <UploadItem fileName={key.split("/").pop()} progress={progress} />
-                </div>
-              ))}
-              {filteredItems.map((item) => (
-                <FileItem
-                  key={item.key}
-                  item={item}
-                  isSelected={selectedItems.has(item.key)}
-                  onSelect={() => onSelectItem(item.key)}
-                  onNavigate={() => item.type === "folder" && onNavigateToFolder(item.key)}
-                  viewMode="mobile-list"
-                  onContextMenu={(e) => onContextMenu(e, item)}
-                  onPreview={() => onPreview(item)}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      ) : (
-        // Grid view
-        <div className="h-full overflow-auto p-3 sm:p-4 lg:p-6">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-3 sm:gap-4 lg:gap-6">
-            {currentPath && (
-              <div
-                className="group flex flex-col items-center p-3 sm:p-4 rounded-xl cursor-pointer transition-all duration-200 hover:bg-slate-100/80 dark:hover:bg-slate-700/50 hover:shadow-md hover:scale-105 active:scale-95 border-2 border-dashed border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500"
-                onClick={onNavigateUp}
-              >
-                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center mb-2 sm:mb-3 group-hover:bg-slate-200 dark:group-hover:bg-slate-600 transition-colors duration-200">
-                  <svg className="w-6 h-6 sm:w-8 sm:h-8 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </div>
-                <span className="text-xs sm:text-sm text-slate-700 dark:text-slate-200 font-medium truncate w-full text-center">Go Back</span>
-              </div>
+                  <span className="text-text-primary font-medium">..</span>
+                </td>
+                <td className="p-3 text-sm text-text-placeholder">-</td>
+                <td className="p-3 text-sm text-text-placeholder">-</td>
+                <td className="p-3 text-sm text-text-placeholder">-</td>
+              </tr>
             )}
             {Object.entries(uploadProgress).map(([key, progress]) => (
-              <UploadItem key={key} fileName={key.split("/").pop()} progress={progress} />
+              <tr key={key}>
+                <td colSpan="5" className="p-3">
+                  <UploadItem fileName={key.split("/").pop()} progress={progress} />
+                </td>
+              </tr>
             ))}
             {filteredItems.map((item) => (
               <FileItem
@@ -311,14 +230,17 @@ export default function FileList({
                 isSelected={selectedItems.has(item.key)}
                 onSelect={() => onSelectItem(item.key)}
                 onNavigate={() => item.type === "folder" && onNavigateToFolder(item.key)}
-                viewMode="grid"
-                onContextMenu={(e) => onContextMenu(e, item)}
+                viewMode="list"
                 onPreview={() => onPreview(item)}
+                onDownload={onDownload}
+                onShare={onShare}
+                onDelete={onDelete}
+                onRename={onRename}
               />
             ))}
-          </div>
-        </div>
-      )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

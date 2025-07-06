@@ -83,6 +83,10 @@ const icons = {
   cloud: (
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
   ),
+
+  wallet: (
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V5a3 3 0 00-3-3H7a3 3 0 00-3 3v12a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4h-4m4 0a2 2 0 100-4h-4a2 2 0 100 4z" />
+  ),
   
   // User/Team
   user: (

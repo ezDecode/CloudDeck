@@ -32,13 +32,13 @@ export default function NewFolderModal({ isOpen, onClose, currentPath, onFolderC
       // Initialize S3 client if not already initialized
       try {
         initializeS3Client(credentials);
-      } catch (initError) {
+      } catch (e) {
         setError("Failed to initialize S3 client. Please check your credentials.");
         return;
       }
 
       const folderPath = `${currentPath}${folderName}/`;
-      const result = await createFolder(credentials.bucket, folderPath);
+      const result = await createFolder(credentials.bucketName, folderPath);
 
       if (result.success) {
         onFolderCreated();
@@ -69,15 +69,15 @@ export default function NewFolderModal({ isOpen, onClose, currentPath, onFolderC
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-md w-full p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+    <div className="fixed inset-0 bg-text-primary bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-neutral-white rounded-[24px] shadow-xl max-w-md w-full p-8 transform transition-all duration-300">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-[24px] md:text-[28px] font-[400] text-text-primary">
             Create New Folder
           </h2>
           <button
             onClick={handleClose}
-            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+            className="text-text-placeholder hover:text-text-primary transition-colors duration-300"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -85,8 +85,8 @@ export default function NewFolderModal({ isOpen, onClose, currentPath, onFolderC
           </button>
         </div>
 
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+        <div className="mb-6">
+          <label className="block text-[16px] font-[400] text-text-primary mb-3">
             Folder Name
           </label>
           <input
@@ -95,35 +95,36 @@ export default function NewFolderModal({ isOpen, onClose, currentPath, onFolderC
             onChange={(e) => setFolderName(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Enter folder name..."
-            className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full text-[16px] font-[300] px-4 py-4 border border-neutral-borders rounded-[16px] bg-neutral-white text-text-primary placeholder-text-placeholder focus:outline-none focus:ring-2 focus:ring-text-primary focus:border-transparent transition-all duration-300"
             autoFocus
+            aria-describedby="folder-name-description"
           />
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          <p id="folder-name-description" className="mt-2 text-[14px] font-[300] text-text-secondary">
             Only letters, numbers, dots, hyphens, and underscores are allowed
           </p>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+          <div className="mb-6 p-4 bg-accent-red/10 border border-accent-red/20 rounded-[16px]">
+            <p className="text-[14px] font-[400] text-accent-red">{error}</p>
           </div>
         )}
 
-        <div className="flex justify-end space-x-3">
+        <div className="flex justify-end space-x-4">
           <button
             onClick={handleClose}
-            className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
+            className="text-[16px] font-[400] text-text-secondary hover:text-text-primary transition-colors duration-300 px-6 py-3"
           >
             Cancel
           </button>
           <button
             onClick={handleCreateFolder}
             disabled={loading || !folderName.trim()}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors disabled:cursor-not-allowed flex items-center space-x-2"
+            className="bg-text-primary text-neutral-white text-[16px] font-[400] px-6 py-3 rounded-[20px] transition-all duration-300 hover:bg-[#333333] disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-text-primary/30 flex items-center space-x-2"
           >
             {loading ? (
               <>
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin w-4 h-4 text-neutral-white" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>

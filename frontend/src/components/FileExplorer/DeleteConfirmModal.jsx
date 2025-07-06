@@ -20,13 +20,13 @@ export default function DeleteConfirmModal({ isOpen, onClose, selectedItems, onD
       // Initialize S3 client if not already initialized
       try {
         initializeS3Client(credentials);
-      } catch (initError) {
+      } catch (_error) {
         setError("Failed to initialize S3 client. Please check your credentials.");
         return;
       }
 
-      const keys = Array.from(selectedItems);
-      const result = await deleteObjects(credentials.bucket, keys);
+      const keys = Array.from(selectedItems).map(item => item.key);
+      const result = await deleteObjects(credentials.bucketName, keys);
       
       if (result.success) {
         onDeleteComplete();
@@ -101,6 +101,7 @@ export default function DeleteConfirmModal({ isOpen, onClose, selectedItems, onD
             onClick={handleClose}
             disabled={loading}
             className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors disabled:opacity-50"
+            autoFocus
           >
             Cancel
           </button>

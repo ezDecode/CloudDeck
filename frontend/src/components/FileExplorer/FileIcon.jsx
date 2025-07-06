@@ -2,8 +2,9 @@ import React from "react";
 
 const icons = {
   folder: (size) => (
-    <svg className={size} fill="currentColor" viewBox="0 0 20 20">
-      <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+    <svg className={size} fill="currentColor" viewBox="0 0 24 24">
+      <path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z" opacity="0.8"/>
+      <path d="M20 8H4v10c0 1.11.89 2 2 2h12c1.11 0 2-.89 2-2V8z" opacity="0.6"/>
     </svg>
   ),
   image: (size) => (
@@ -58,12 +59,12 @@ const icons = {
 };
 
 const colorClasses = {
-  folder: "text-primary",
-  image: "text-emerald-500",
-  video: "text-purple-500",
-  audio: "text-pink-500",
-  document: "text-red-500",
-  code: "text-amber-500",
+  folder: "text-neutral-600",
+  image: "text-neutral-600",
+  video: "text-neutral-600",
+  audio: "text-neutral-600",
+  document: "text-neutral-600",
+  code: "text-neutral-600",
   archive: "text-neutral-600",
   file: "text-neutral-400",
 };
@@ -75,14 +76,63 @@ const sizeClasses = {
   xl: "w-16 h-16", // 4rem
 };
 
-export default function FileIcon({ type = "file", size = "md" }) {
-  const icon = icons[type] || icons.file;
+export default function FileIcon({ fileName, fileType, size = "md" }) {
+  // If fileType is explicitly provided (like "folder"), use it
+  // Otherwise, determine type from file extension
+  let type;
+  if (fileType) {
+    type = fileType;
+  } else {
+    const extension = fileName?.split(".").pop().toLowerCase();
+    type = extensionToFileType[extension] || "file";
+  }
+
+  const IconComponent = icons[type] || icons.file;
   const colorClass = colorClasses[type] || colorClasses.file;
   const sizeClass = sizeClasses[size] || sizeClasses.md;
 
   return (
-    <span className={colorClass}>
-      {icon(sizeClass)}
-    </span>
+    <div className={`relative ${sizeClass} ${colorClass}`}>
+      <IconComponent className="w-full h-full" />
+    </div>
   );
 }
+
+const extensionToFileType = {
+  // Image
+  jpg: "image", jpeg: "image", png: "image", gif: "image", webp: "image",
+  svg: "image", bmp: "image", tiff: "image", ico: "image",
+
+  // Video
+  mp4: "video", webm: "video", ogg: "video", mov: "video", avi: "video",
+  mkv: "video", flv: "video", wmv: "video",
+
+  // Audio
+  mp3: "audio", wav: "audio", oga: "audio", aac: "audio", flac: "audio",
+
+  // Document
+  pdf: "document", doc: "document", docx: "document", xls: "document",
+  xlsx: "document", ppt: "document", pptx: "document", txt: "document",
+  rtf: "document",
+
+  // Code
+  js: "code", jsx: "code", ts: "code", tsx: "code", html: "code",
+  css: "code", json: "code", xml: "code", py: "code", java: "code",
+  c: "code", cpp: "code", cs: "code", go: "code", php: "code",
+  rb: "code", swift: "code",
+
+  // Archive
+  zip: "archive", rar: "archive", "7z": "archive", tar: "archive",
+  gz: "archive",
+};
+
+const iconMap = {
+  folder: (props) => <icons.folder {...props} />,
+  image: (props) => <icons.image {...props} />,
+  video: (props) => <icons.video {...props} />,
+  audio: (props) => <icons.audio {...props} />,
+  document: (props) => <icons.document {...props} />,
+  code: (props) => <icons.code {...props} />,
+  archive: (props) => <icons.archive {...props} />,
+  file: (props) => <icons.file {...props} />,
+};

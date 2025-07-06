@@ -1,13 +1,84 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap');
 
-/* Satoshi Variable Font */
+/* PolySans Font Definitions */
 @font-face {
-  font-family: 'Satoshi';
-  src: url('./assets/fonts/Satoshi-Variable.woff2') format('woff2'),
-       url('./assets/fonts/Satoshi-Variable.woff') format('woff'),
-       url('./assets/fonts/Satoshi-Variable.ttf') format('truetype');
+  font-family: 'PolySans';
+  src: url('./assets/fonts/PolySans Neutral.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PolySans';
+  src: url('./assets/fonts/PolySans Neutral Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PolySans';
+  src: url('./assets/fonts/PolySans Slim.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PolySans';
+  src: url('./assets/fonts/PolySans Slim Italic.ttf') format('truetype');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PolySans';
+  src: url('./assets/fonts/PolySans Median.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PolySans';
+  src: url('./assets/fonts/PolySans Median Italic.ttf') format('truetype');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PolySans';
+  src: url('./assets/fonts/PolySans Bulky.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PolySans';
+  src: url('./assets/fonts/PolySans Bulky Italic.ttf') format('truetype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Variable Font Support */
+@font-face {
+  font-family: 'PolySansGX';
+  src: url('./assets/fonts/PolySansGX.woff2') format('woff2-variations');
   font-weight: 300 900;
   font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PolySansItalicGX';
+  src: url('./assets/fonts/PolySansItalicGX.woff2') format('woff2-variations');
+  font-weight: 300 900;
+  font-style: italic;
   font-display: swap;
 }
 
@@ -16,18 +87,74 @@
 @tailwind utilities;
 
 :root {
-  font-family: 'Satoshi', 'Inter', sans-serif;
+  /* Design System Colors */
+  --color-primary-bg: #f5f5f5;
+  --color-secondary-bg: #e0e0e0;
+  --color-accent-red: #ff4444;
+  --color-text-primary: #000000;
+  --color-text-secondary: #666666;
+  --color-text-placeholder: #999999;
+  --color-neutral-white: #ffffff;
+  --color-neutral-borders: #cccccc;
+  
+  /* Spacing System (8px base) */
+  --space-xs: 8px;
+  --space-sm: 16px;
+  --space-md: 24px;
+  --space-lg: 32px;
+  --space-xl: 48px;
+  --space-xxl: 64px;
+  --space-xxxl: 96px;
+}
+
+html {
+  font-family: 'PolySans', 'Inter', system-ui, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
   color-scheme: light dark;
   color: #262626;
   background-color: #FAFAFA;
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: 'PolySans', 'Inter', system-ui, sans-serif;
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Base layer customizations */
+@layer base {
+  html {
+    font-family: 'PolySans', 'Inter', system-ui, sans-serif;
+  }
+  
+  body {
+    font-family: 'PolySans', 'Inter', system-ui, sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'PolySans', 'Inter', system-ui, sans-serif;
+  }
+  
+  input, select, textarea, button {
+    font-family: 'PolySans', 'Inter', system-ui, sans-serif;
+  }
+}
+
+/* App-specific styles */
+.app {
+  min-height: 100vh;
+  font-family: 'PolySans', 'Inter', system-ui, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -371,4 +498,62 @@ select optgroup option {
 select option:hover,
 select option:focus {
   background-color: #4b5563;
+}
+
+/* Custom Slider Styling for ShareModal */
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.sonner-toast {
+  background-color: var(--color-neutral-white) !important;
+  border: 1px solid var(--color-neutral-borders) !important;
+  border-radius: var(--rounded-design) !important;
+  color: var(--color-text-primary) !important;
+  font-family: 'PolySans', 'Inter', system-ui, sans-serif !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #000000;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  background: #333333;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: scale(1.1);
+}
+
+.slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #000000;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.slider::-moz-range-thumb:hover {
+  background: #333333;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: scale(1.1);
+}
+
+.slider::-moz-range-track {
+  height: 8px;
+  background: #F5F5F5;
+  border-radius: 4px;
+  border: none;
 }

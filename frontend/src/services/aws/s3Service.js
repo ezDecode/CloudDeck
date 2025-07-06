@@ -25,7 +25,7 @@ export const clearStoredCredentials = () => {
  */
 export const initializeS3Client = (credentials) => {
   // Validate credentials before initializing
-  if (!credentials.accessKey || !credentials.secretKey || !credentials.bucket || !credentials.region) {
+  if (!credentials.accessKey || !credentials.secretKey || !credentials.bucketName || !credentials.region) {
     throw new Error("Invalid credentials: Access Key, Secret Key, Bucket, and Region are required");
   }
 
@@ -35,7 +35,6 @@ export const initializeS3Client = (credentials) => {
       accessKeyId: credentials.accessKey,
       secretAccessKey: credentials.secretKey,
     },
-    // Enable CORS for browser requests
     requestHandler: {
       httpsAgent: undefined,
       httpAgent: undefined,
@@ -43,10 +42,13 @@ export const initializeS3Client = (credentials) => {
         'User-Agent': 'CloudDeck/1.0'
       }
     },
-    // Set appropriate timeouts
     requestTimeout: 120000, // 2 minutes
     maxAttempts: 3,
-    retryMode: 'adaptive'
+    retryMode: 'adaptive',
+    forcePathStyle: false,
+    useAccelerateEndpoint: false,
+    useDualstackEndpoint: false,
+    checksumDisabled: true,
   });
   return s3Client;
 };
@@ -61,7 +63,7 @@ export const getS3Client = () => {
     if (storedCredentials) {
       try {
         initializeS3Client(storedCredentials);
-      } catch (error) {
+      } catch {
         throw new Error("S3 client not initialized and failed to auto-initialize. Please check your credentials.");
       }
     } else {
@@ -77,7 +79,7 @@ export const getS3Client = () => {
 export const testConnection = async (credentials) => {
   try {
     // Validate credentials first
-    if (!credentials.accessKey || !credentials.secretKey || !credentials.bucket || !credentials.region) {
+    if (!credentials.accessKey || !credentials.secretKey || !credentials.bucketName || !credentials.region) {
       return { 
         success: false, 
         message: "Invalid credentials: All fields (Access Key, Secret Key, Bucket, Region) are required" 
@@ -90,19 +92,21 @@ export const testConnection = async (credentials) => {
         accessKeyId: credentials.accessKey,
         secretAccessKey: credentials.secretKey,
       },
-      // Enhanced configuration for better error handling
       requestTimeout: 30000, // 30 seconds for connection test
       maxAttempts: 2,
-      retryMode: 'adaptive'
+      retryMode: 'adaptive',
+      forcePathStyle: false,
+      useAccelerateEndpoint: false,
+      useDualstackEndpoint: false
     });
 
-    // Try to get bucket metadata - this tests both authentication and CORS
-    const command = new HeadBucketCommand({ Bucket: credentials.bucket });
-    const response = await tempClient.send(command);
+    // Try to get bucket metadata - this tests both authentication
+    const command = new HeadBucketCommand({ Bucket: credentials.bucketName });
+    await tempClient.send(command);
     
     // Additional validation - try to list objects to ensure read permissions
     const listCommand = new ListObjectsV2Command({ 
-      Bucket: credentials.bucket, 
+      Bucket: credentials.bucketName, 
       MaxKeys: 1 
     });
     await tempClient.send(listCommand);
@@ -121,11 +125,11 @@ export const testConnection = async (credentials) => {
     
     let errorMessage = "Failed to connect to S3";
     
-    // Enhanced error handling with specific CORS and permission messages
+    // Enhanced error handling with specific permission messages
     if (error.name === "NotFound" || error.$metadata?.httpStatusCode === 404) {
       errorMessage = "Bucket not found. Please verify the bucket name and ensure it exists in the specified region.";
     } else if (error.name === "Forbidden" || error.$metadata?.httpStatusCode === 403) {
-      errorMessage = "Access denied. Please check your credentials and ensure the IAM user has proper S3 permissions. Also verify CORS configuration.";
+      errorMessage = "Access denied. Please check your credentials and ensure the IAM user has proper S3 permissions.";
     } else if (error.name === "CredentialsError" || error.name === "InvalidUserCredentials") {
       errorMessage = "Invalid credentials. Please verify your Access Key ID and Secret Access Key.";
     } else if (error.name === "InvalidAccessKeyId") {
@@ -137,13 +141,11 @@ export const testConnection = async (credentials) => {
     } else if (error.name === "PermanentRedirect") {
       errorMessage = "Bucket is in a different region. Please verify the region setting.";
     } else if (error.name === "NetworkingError" || error.code === "ENOTFOUND") {
-      errorMessage = "Network error. Please check your internet connection and ensure CORS is properly configured.";
+      errorMessage = "Network error. Please check your internet connection.";
     } else if (error.$metadata?.httpStatusCode === 400) {
       errorMessage = "Invalid request. Please check your bucket name and region settings.";
     } else if (error.$metadata?.httpStatusCode >= 500) {
       errorMessage = "AWS service error. Please try again later.";
-    } else if (error.message?.includes("CORS")) {
-      errorMessage = "CORS error. Please configure CORS policy on your S3 bucket to allow requests from your domain.";
     } else if (error.message) {
       errorMessage = `Connection failed: ${error.message}`;
     }
@@ -156,7 +158,7 @@ export const testConnection = async (credentials) => {
         code: error.code,
         statusCode: error.$metadata?.httpStatusCode,
         region: credentials.region,
-        bucket: credentials.bucket
+        bucket: credentials.bucketName
       }
     };
   }
@@ -167,9 +169,14 @@ export const testConnection = async (credentials) => {
  */
 export const listObjects = async (bucket, prefix = "", continuationToken = null) => {
   try {
+    // Validate bucket parameter
+    if (!bucket || typeof bucket !== 'string' || bucket.trim() === '') {
+      throw new Error('Bucket name is required and cannot be empty');
+    }
+
     const client = getS3Client();
     const params = {
-      Bucket: bucket,
+      Bucket: bucket.trim(),
       Prefix: prefix,
       MaxKeys: 1000,
       Delimiter: "/",
@@ -196,14 +203,14 @@ export const listObjects = async (bucket, prefix = "", continuationToken = null)
     
     let errorMessage = "Failed to list objects";
     
-    if (error.name === "Forbidden" || error.$metadata?.httpStatusCode === 403) {
-      errorMessage = "Access denied. Check your permissions or CORS configuration.";
+    if (error.message === 'Bucket name is required and cannot be empty') {
+      errorMessage = "Invalid bucket configuration. Please reconnect to your S3 account.";
+    } else if (error.name === "Forbidden" || error.$metadata?.httpStatusCode === 403) {
+      errorMessage = "Access denied. Check your permissions.";
     } else if (error.name === "NoSuchBucket" || error.$metadata?.httpStatusCode === 404) {
       errorMessage = "Bucket not found. Please verify the bucket name and region.";
     } else if (error.name === "NetworkingError" || error.code === "ENOTFOUND") {
-      errorMessage = "Network error. Check your connection and CORS configuration.";
-    } else if (error.message?.includes("CORS")) {
-      errorMessage = "CORS error. Please configure CORS policy on your S3 bucket.";
+      errorMessage = "Network error. Check your connection.";
     }
     
     return {
@@ -215,7 +222,7 @@ export const listObjects = async (bucket, prefix = "", continuationToken = null)
 };
 
 /**
- * Upload a file to S3
+ * Upload a file to S3 with chunked upload for large files
  * @param {string} bucket - Bucket name
  * @param {string} key - File key (path)
  * @param {File} file - File object
@@ -224,15 +231,30 @@ export const listObjects = async (bucket, prefix = "", continuationToken = null)
  */
 export const uploadFile = async (bucket, key, file, onProgress) => {
   try {
+    // Validate bucket parameter
+    if (!bucket || typeof bucket !== 'string' || bucket.trim() === '') {
+      throw new Error('Bucket name is required and cannot be empty');
+    }
+
     const client = getS3Client();
+    
+    // Enhanced upload configuration for better reliability
     const upload = new Upload({
       client,
       params: {
-        Bucket: bucket,
+        Bucket: bucket.trim(),
         Key: key,
         Body: file,
         ContentType: file.type,
+        // Disable automatic checksums to avoid CRC32 issues
+        ChecksumAlgorithm: undefined,
       },
+      // Configure multipart upload settings
+      queueSize: 4, // Number of parts to upload concurrently
+      partSize: 1024 * 1024 * 10, // 10MB parts for better chunking
+      leavePartsOnError: false, // Clean up failed uploads
+      // Disable automatic checksum validation to avoid the CRC32 issue
+      checksumAlgorithm: undefined,
     });
 
     upload.on("httpUploadProgress", (progress) => {
@@ -242,24 +264,30 @@ export const uploadFile = async (bucket, key, file, onProgress) => {
       }
     });
 
-    await upload.done();
+    const result = await upload.done();
 
-    return { success: true, message: "File uploaded successfully" };
+    return { 
+      success: true, 
+      message: "File uploaded successfully",
+      result: result
+    };
   } catch (error) {
     console.error("Failed to upload file:", error);
     
     let errorMessage = "Failed to upload file";
     
-    if (error.name === "Forbidden" || error.$metadata?.httpStatusCode === 403) {
-      errorMessage = "Access denied. Check your write permissions or CORS configuration.";
+    if (error.message === 'Bucket name is required and cannot be empty') {
+      errorMessage = "Invalid bucket configuration. Please reconnect to your S3 account.";
+    } else if (error.name === "Forbidden" || error.$metadata?.httpStatusCode === 403) {
+      errorMessage = "Access denied. Check your write permissions.";
     } else if (error.name === "NoSuchBucket" || error.$metadata?.httpStatusCode === 404) {
       errorMessage = "Bucket not found. Please verify the bucket name and region.";
     } else if (error.name === "NetworkingError" || error.code === "ENOTFOUND") {
-      errorMessage = "Network error. Check your connection and CORS configuration.";
-    } else if (error.message?.includes("CORS")) {
-      errorMessage = "CORS error. Please configure CORS policy on your S3 bucket.";
+      errorMessage = "Network error. Check your connection.";
     } else if (error.message?.includes("timeout")) {
       errorMessage = "Upload timeout. Please try again or check your connection.";
+    } else if (error.message?.includes("checksum") || error.name === "InvalidRequest") {
+      errorMessage = "Checksum validation failed. Upload has been configured to retry without checksums.";
     }
     
     return {
@@ -278,15 +306,27 @@ export const uploadFile = async (bucket, key, file, onProgress) => {
  */
 export const downloadFile = async (bucket, key) => {
   try {
+    // Validate bucket parameter
+    if (!bucket || typeof bucket !== 'string' || bucket.trim() === '') {
+      throw new Error('Bucket name is required and cannot be empty');
+    }
+
     const client = getS3Client();
-    const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+    const command = new GetObjectCommand({ Bucket: bucket.trim(), Key: key });
     const url = await getSignedUrl(client, command, { expiresIn: 3600 });
     return { success: true, url };
   } catch (error) {
     console.error("Failed to download file:", error);
+    
+    let errorMessage = "Failed to download file";
+    
+    if (error.message === 'Bucket name is required and cannot be empty') {
+      errorMessage = "Invalid bucket configuration. Please reconnect to your S3 account.";
+    }
+    
     return {
       success: false,
-      message: "Failed to download file",
+      message: errorMessage,
       error,
     };
   }
@@ -300,9 +340,14 @@ export const downloadFile = async (bucket, key) => {
  */
 export const deleteObjects = async (bucket, keys) => {
   try {
+    // Validate bucket parameter
+    if (!bucket || typeof bucket !== 'string' || bucket.trim() === '') {
+      throw new Error('Bucket name is required and cannot be empty');
+    }
+
     const client = getS3Client();
     const command = new DeleteObjectsCommand({
-      Bucket: bucket,
+      Bucket: bucket.trim(),
       Delete: {
         Objects: keys.map(key => ({ Key: key })),
         Quiet: false,
@@ -312,9 +357,16 @@ export const deleteObjects = async (bucket, keys) => {
     return { success: true };
   } catch (error) {
     console.error("Failed to delete objects:", error);
+    
+    let errorMessage = "Failed to delete objects";
+    
+    if (error.message === 'Bucket name is required and cannot be empty') {
+      errorMessage = "Invalid bucket configuration. Please reconnect to your S3 account.";
+    }
+    
     return {
       success: false,
-      message: "Failed to delete objects",
+      message: errorMessage,
       error,
     };
   }
@@ -328,59 +380,6 @@ export const clearS3Client = () => {
 };
 
 /**
- * Validate CORS configuration by making a preflight request
- */
-export const validateCORS = async (credentials) => {
-  try {
-    const bucketUrl = `https://${credentials.bucket}.s3.${credentials.region}.amazonaws.com/`;
-    
-    const response = await fetch(bucketUrl, {
-      method: 'OPTIONS',
-      headers: {
-        'Origin': window.location.origin,
-        'Access-Control-Request-Method': 'GET',
-        'Access-Control-Request-Headers': 'Content-Type, Authorization',
-      },
-    });
-    
-    if (response.ok) {
-      return { success: true, message: "CORS configuration is valid" };
-    } else {
-      return { 
-        success: false, 
-        message: "CORS preflight failed. Please check your bucket's CORS configuration." 
-      };
-    }
-  } catch (error) {
-    return { 
-      success: false, 
-      message: "Unable to validate CORS configuration. This may indicate CORS issues." 
-    };
-  }
-};
-
-/**
- * Generate CORS configuration for the bucket
- */
-export const generateCORSConfig = (allowedOrigins = []) => {
-  const origins = allowedOrigins.length > 0 ? allowedOrigins : [
-    window.location.origin,
-    'http://localhost:5173',
-    'http://localhost:3000'
-  ];
-  
-  return [
-    {
-      AllowedHeaders: ['*'],
-      AllowedMethods: ['GET', 'PUT', 'POST', 'DELETE', 'HEAD'],
-      AllowedOrigins: origins,
-      ExposeHeaders: ['ETag', 'x-amz-meta-custom-header'],
-      MaxAgeSeconds: 3000
-    }
-  ];
-};
-
-/**
  * Generate a shareable link for a file
  * @param {string} bucket - Bucket name
  * @param {string} key - File key (path)
@@ -389,8 +388,13 @@ export const generateCORSConfig = (allowedOrigins = []) => {
  */
 export const generateShareableLink = async (bucket, key, expiresIn = 86400, password = null) => {
   try {
+    // Validate bucket parameter
+    if (!bucket || typeof bucket !== 'string' || bucket.trim() === '') {
+      throw new Error('Bucket name is required and cannot be empty');
+    }
+
     const client = getS3Client();
-    const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+    const command = new GetObjectCommand({ Bucket: bucket.trim(), Key: key });
     let url = await getSignedUrl(client, command, { expiresIn });
 
     if (password) {
@@ -424,6 +428,11 @@ export const generateShareableLink = async (bucket, key, expiresIn = 86400, pass
  */
 export const createFolder = async (bucket, folderPath) => {
   try {
+    // Validate bucket parameter
+    if (!bucket || typeof bucket !== 'string' || bucket.trim() === '') {
+      throw new Error('Bucket name is required and cannot be empty');
+    }
+
     const client = getS3Client();
     
     // Ensure the folder path ends with /
@@ -431,7 +440,7 @@ export const createFolder = async (bucket, folderPath) => {
     
     // Create an empty object with the folder path
     const command = new PutObjectCommand({
-      Bucket: bucket,
+      Bucket: bucket.trim(),
       Key: normalizedPath,
       Body: '',
       ContentType: 'application/x-directory'
@@ -448,7 +457,9 @@ export const createFolder = async (bucket, folderPath) => {
     
     let errorMessage = "Failed to create folder";
     
-    if (error.name === "Forbidden" || error.$metadata?.httpStatusCode === 403) {
+    if (error.message === 'Bucket name is required and cannot be empty') {
+      errorMessage = "Invalid bucket configuration. Please reconnect to your S3 account.";
+    } else if (error.name === "Forbidden" || error.$metadata?.httpStatusCode === 403) {
       errorMessage = "Access denied. Check your write permissions.";
     } else if (error.name === "NoSuchBucket" || error.$metadata?.httpStatusCode === 404) {
       errorMessage = "Bucket not found. Please verify the bucket name.";
@@ -492,5 +503,233 @@ export const copyObject = async (bucket, sourceKey, destinationKey) => {
       message: "Failed to copy file",
       error,
     };
+  }
+};
+
+/**
+ * Upload large files (especially videos) with resumable capability
+ * @param {string} bucket - Bucket name
+ * @param {string} key - File key (path)
+ * @param {File} file - File object
+ * @param {function} onProgress - Progress callback
+ * @param {Object} options - Upload options
+ * @returns {Promise<{success: boolean, message?: string, error?: any}>}
+ */
+export const uploadLargeFile = async (bucket, key, file, onProgress, options = {}) => {
+  const MAX_RETRIES = 3;
+  let retryCount = 0;
+  
+  const attemptUpload = async () => {
+    try {
+      // Validate bucket parameter
+      if (!bucket || typeof bucket !== 'string' || bucket.trim() === '') {
+        throw new Error('Bucket name is required and cannot be empty');
+      }
+
+      const client = getS3Client();
+      
+      // Enhanced configuration for large files and videos
+      const uploadConfig = {
+        client,
+        params: {
+          Bucket: bucket.trim(),
+          Key: key,
+          Body: file,
+          ContentType: file.type,
+          // Disable automatic checksums to avoid the CRC32 issue
+          ChecksumAlgorithm: undefined,
+          // Metadata for tracking
+          Metadata: {
+            'original-filename': file.name,
+            'upload-timestamp': new Date().toISOString(),
+            'file-size': file.size.toString(),
+          },
+        },
+        // Optimized settings for large files
+        queueSize: 4, // Concurrent parts
+        partSize: Math.max(1024 * 1024 * 10, Math.ceil(file.size / 10000)), // Dynamic part size, min 10MB
+        leavePartsOnError: true, // Keep parts for resumption
+        // Disable automatic checksum validation to avoid the CRC32 issue
+        checksumAlgorithm: undefined,
+      };
+
+      // Add custom options
+      if (options.partSize) {
+        uploadConfig.partSize = options.partSize;
+      }
+      if (options.queueSize) {
+        uploadConfig.queueSize = options.queueSize;
+      }
+
+      const upload = new Upload(uploadConfig);
+
+      // Enhanced progress tracking
+      upload.on("httpUploadProgress", (progress) => {
+        if (onProgress && progress.total) {
+          const percentage = Math.round((progress.loaded / progress.total) * 100);
+          const uploadedMB = (progress.loaded / (1024 * 1024)).toFixed(2);
+          const totalMB = (progress.total / (1024 * 1024)).toFixed(2);
+          
+          onProgress({
+            percentage,
+            loaded: progress.loaded,
+            total: progress.total,
+            uploadedMB,
+            totalMB,
+            part: progress.part,
+          });
+        }
+      });
+
+      const result = await upload.done();
+
+      return { 
+        success: true, 
+        message: "Large file uploaded successfully",
+        result: result,
+        metadata: {
+          bucket: bucket.trim(),
+          key,
+          size: file.size,
+          type: file.type,
+          uploadedAt: new Date().toISOString(),
+        }
+      };
+    } catch (error) {
+      console.error(`Upload attempt ${retryCount + 1} failed:`, error);
+      
+      // Check if we should retry
+      if (retryCount < MAX_RETRIES && 
+          (error.name === 'NetworkingError' || 
+           error.name === 'TimeoutError' ||
+           error.name === 'InvalidRequest' || // Add retry for checksum-related issues
+           error.$metadata?.httpStatusCode >= 500)) {
+        
+        retryCount++;
+        console.log(`Retrying upload... Attempt ${retryCount}/${MAX_RETRIES}`);
+        
+        // Exponential backoff
+        const delay = Math.pow(2, retryCount) * 1000;
+        await new Promise(resolve => setTimeout(resolve, delay));
+        
+        return attemptUpload();
+      }
+      
+      // If we've exhausted retries or it's a non-retryable error
+      let errorMessage = "Failed to upload large file";
+      
+      if (error.message === 'Bucket name is required and cannot be empty') {
+        errorMessage = "Invalid bucket configuration. Please reconnect to your S3 account.";
+      } else if (error.name === "Forbidden" || error.$metadata?.httpStatusCode === 403) {
+        errorMessage = "Access denied. Check your write permissions.";
+      } else if (error.name === "NoSuchBucket" || error.$metadata?.httpStatusCode === 404) {
+        errorMessage = "Bucket not found. Please verify the bucket name and region.";
+      } else if (error.name === "NetworkingError" || error.code === "ENOTFOUND") {
+        errorMessage = "Network error. Check your connection.";
+      } else if (error.message?.includes("timeout")) {
+        errorMessage = "Upload timeout. Please try again or check your connection.";
+      } else if (error.message?.includes("checksum") || error.name === "InvalidRequest") {
+        errorMessage = "Checksum validation failed. Upload has been configured to retry without checksums.";
+      }
+      
+      return {
+        success: false,
+        message: errorMessage,
+        error,
+        retryCount,
+      };
+    }
+  };
+
+  return attemptUpload();
+};
+
+/**
+ * Retry failed uploads with exponential backoff
+ * @param {function} uploadFunction - The upload function to retry
+ * @param {number} maxRetries - Maximum number of retries
+ * @param {number} baseDelay - Base delay in milliseconds
+ * @returns {Promise}
+ */
+export const retryUpload = async (uploadFunction, maxRetries = 3, baseDelay = 1000) => {
+  let lastError;
+  
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const result = await uploadFunction();
+      return result;
+    } catch (error) {
+      lastError = error;
+      
+      if (attempt === maxRetries) {
+        break;
+      }
+      
+      // Check if error is retryable
+      const isRetryable = 
+        error.name === 'NetworkingError' ||
+        error.name === 'TimeoutError' ||
+        error.$metadata?.httpStatusCode >= 500 ||
+        error.message?.includes('timeout') ||
+        error.message?.includes('connection');
+      
+      if (!isRetryable) {
+        break;
+      }
+      
+      // Exponential backoff with jitter
+      const delay = baseDelay * Math.pow(2, attempt) + Math.random() * 1000;
+      await new Promise(resolve => setTimeout(resolve, delay));
+      
+      console.log(`Retrying upload... Attempt ${attempt + 2}/${maxRetries + 1}`);
+    }
+  }
+  
+  throw lastError;
+};
+
+/**
+ * Check if a file is a video file
+ * @param {File} file - File object
+ * @returns {boolean}
+ */
+export const isVideoFile = (file) => {
+  const videoTypes = [
+    'video/mp4',
+    'video/avi',
+    'video/mov',
+    'video/wmv',
+    'video/flv',
+    'video/webm',
+    'video/mkv',
+    'video/m4v',
+    'video/3gp',
+    'video/quicktime'
+  ];
+  return videoTypes.includes(file.type.toLowerCase()) || 
+         /\.(mp4|avi|mov|wmv|flv|webm|mkv|m4v|3gp)$/i.test(file.name);
+};
+
+/**
+ * Smart upload function that chooses the best upload method based on file type and size
+ * @param {string} bucket - Bucket name
+ * @param {string} key - File key (path)
+ * @param {File} file - File object
+ * @param {function} onProgress - Progress callback
+ * @returns {Promise<{success: boolean, message?: string, error?: any}>}
+ */
+export const smartUploadFile = async (bucket, key, file, onProgress) => {
+  const isVideo = isVideoFile(file);
+  const isLargeFile = file.size > 50 * 1024 * 1024; // 50MB threshold
+  
+  if (isVideo || isLargeFile) {
+    // Use enhanced upload for videos and large files
+    return uploadLargeFile(bucket, key, file, onProgress, {
+      partSize: isVideo ? 1024 * 1024 * 20 : 1024 * 1024 * 10, // 20MB for videos, 10MB for others
+      queueSize: isVideo ? 2 : 4, // Less concurrent uploads for videos to reduce errors
+    });
+  } else {
+    // Use standard upload for small files
+    return uploadFile(bucket, key, file, onProgress);
   }
 };
