@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const SetupGuide = () => {
   const corsConfiguration = `
@@ -14,19 +15,21 @@ const SetupGuide = () => {
   `.trim();
 
   return (
-    <div className="bg-primary-bg min-h-screen py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto bg-neutral-white rounded-lg shadow-lg p-8 md:p-12 border border-neutral-borders">
+    <div className="bg-primary-bg min-h-screen py-8 sm:py-12 px-4 sm:px-6 lg:px-8 relative">
+      <div className="absolute top-8 left-8">
+        <Link to="/" className="text-blue-500 hover:underline"> &larr; Back to Home</Link>
+      </div>
+      <div className="max-w-4xl mx-auto bg-neutral-white rounded-lg shadow-lg p-6 sm:p-8 md:p-12 border border-neutral-borders">
+        <h1 className="text-3xl sm:text-4xl font-bold text-text-primary mb-6 sm:mb-8 text-center">CloudDeck Setup Guide</h1>
         
-        <h1 className="text-4xl font-bold text-text-primary mb-8 text-center">CloudDeck Setup Guide</h1>
-        
-        <p className="text-lg text-text-secondary mb-10 text-center">
+        <p className="text-md sm:text-lg text-text-secondary mb-8 sm:mb-10 text-center">
           Follow these steps to connect your AWS account and start managing your S3 buckets seamlessly.
         </p>
         
-        <div className="space-y-12">
+        <div className="space-y-10 sm:space-y-12">
           
           <div>
-            <h2 className="text-3xl font-semibold text-text-primary mb-6 border-b pb-3">1. Getting Your AWS Credentials</h2>
+            <h2 className="text-2xl sm:text-3xl font-semibold text-text-primary mb-5 sm:mb-6 border-b pb-3">1. Getting Your AWS Credentials</h2>
             <p className="text-text-secondary mb-6">
               To connect to your account, CloudDeck needs an AWS Access Key. For security, we recommend creating a dedicated IAM user with specific permissions.
             </p>
@@ -48,7 +51,7 @@ const SetupGuide = () => {
           </div>
 
           <div>
-            <h2 className="text-3xl font-semibold text-text-primary mb-6 border-b pb-3">2. Configuring Your S3 Bucket for Web Access (CORS)</h2>
+            <h2 className="text-2xl sm:text-3xl font-semibold text-text-primary mb-5 sm:mb-6 border-b pb-3">2. Configuring Your S3 Bucket for Web Access (CORS)</h2>
             <p className="text-text-secondary mb-6">
               This step is required to allow the CloudDeck web application to securely interact with the files in your S3 bucket directly from your browser.
             </p>
@@ -58,7 +61,7 @@ const SetupGuide = () => {
               <li>Go to the <strong>"Permissions"</strong> tab.</li>
               <li>Scroll down to the <strong>"Cross-origin resource sharing (CORS)"</strong> section and click <strong>"Edit"</strong>.</li>
               <li>Copy the JSON configuration below and paste it into the text editor:</li>
-              <pre className="bg-gray-50 p-4 rounded-md mt-2 border border-neutral-borders text-sm text-left"><code>{corsConfiguration}</code></pre>
+              <pre className="bg-gray-50 p-4 rounded-md mt-2 border border-neutral-borders text-sm text-left overflow-x-auto"><code>{corsConfiguration}</code></pre>
               <li className="p-4 bg-blue-50 border border-blue-300 rounded-md">
                 <strong>Security Note:</strong> For production use, it is recommended to replace <code>"*"</code> in <code>AllowedOrigins</code> with the specific domain where you are hosting CloudDeck.
               </li>
@@ -67,7 +70,7 @@ const SetupGuide = () => {
           </div>
 
           <div>
-            <h2 className="text-3xl font-semibold text-text-primary mb-6 border-b pb-3">3. Connecting to CloudDeck</h2>
+            <h2 className="text-2xl sm:text-3xl font-semibold text-text-primary mb-5 sm:mb-6 border-b pb-3">3. Connecting to CloudDeck</h2>
             <p className="text-text-secondary mb-6">
               With your credentials and CORS policy in place, you are ready to connect.
             </p>
@@ -79,6 +82,15 @@ const SetupGuide = () => {
             </ol>
           </div>
 
+        </div>
+        <div className="text-center mt-12">
+          <Link to="/">
+            <button 
+              className="w-full sm:w-auto bg-text-primary text-neutral-white text-[16px] sm:text-[18px] md:text-[24px] font-[600] px-6 py-3 sm:px-8 sm:py-4 md:px-12 md:py-6 rounded-[32px] border-none cursor-pointer transition-all duration-300 hover:bg-[#333333] transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-text-primary/30 shadow-lg hover:shadow-xl"
+            >
+              Back to Home
+            </button>
+          </Link>
         </div>
       </div>
     </div>

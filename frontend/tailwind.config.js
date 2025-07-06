@@ -82,5 +82,25 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function ({ addUtilities, addBase, addComponents, theme }) {
+      addUtilities({
+        '.animated-gradient-text': {
+          background: 'linear-gradient(90deg, #3b82f6, #f97316, #a855f7, #ec4899)',
+          backgroundSize: '200% 200%',
+          '-webkit-background-clip': 'text',
+          '-webkit-text-fill-color': 'transparent',
+          animation: 'gradient-animation 5s ease infinite',
+        },
+      });
+
+      addBase({
+        '@keyframes gradient-animation': {
+          '0%': { 'background-position': '0% 50%' },
+          '50%': { 'background-position': '100% 50%' },
+          '100%': { 'background-position': '0% 50%' },
+        },
+      });
+    },
+  ],
 } 
