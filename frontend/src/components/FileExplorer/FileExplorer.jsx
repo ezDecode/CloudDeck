@@ -144,10 +144,21 @@ export default function FileExplorer({ onDisconnect }) {
     }
   };
 
-  const handleDeleteComplete = () => {
+  const handleDeleteComplete = (deletedItems) => {
     setSelectedItems(new Set());
     loadFiles();
-    toast.success("Files deleted successfully.");
+
+    const itemCount = deletedItems.size;
+    if (itemCount === 0) return;
+
+    const firstItem = deletedItems.values().next().value;
+    const isFolder = firstItem.type === 'folder';
+
+    if (itemCount === 1) {
+      toast.success(`${isFolder ? 'Folder' : 'File'} deleted successfully.`);
+    } else {
+      toast.success(`${itemCount} items deleted successfully.`);
+    }
   };
 
   const handleDisconnect = () => {
@@ -443,6 +454,19 @@ export default function FileExplorer({ onDisconnect }) {
             
             <div className="flex items-center space-x-4">
               <button
+                onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                className="bg-text-primary text-neutral-white text-[14px] md:text-[16px] font-[400] px-4 md:px-6 py-2 md:py-3 rounded-[20px] border-none cursor-pointer transition-all duration-300 hover:bg-[#333333] transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-text-primary/30"
+              >
+                Upload Files
+              </button>
+              
+              <button
+                onClick={handleNewFolder}
+                className="border border-text-primary text-text-primary text-[14px] md:text-[16px] font-[400] px-4 md:px-6 py-2 md:py-3 rounded-[20px] cursor-pointer transition-all duration-300 hover:bg-text-primary hover:text-neutral-white transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-text-primary/30"
+              >
+                New Folder
+              </button>
+              <button
                 onClick={handleRefresh}
                 disabled={loading}
                 className="border border-neutral-borders text-text-secondary text-[14px] md:text-[16px] font-[400] px-4 md:px-6 py-2 md:py-3 rounded-[20px] cursor-pointer transition-all duration-300 hover:bg-secondary-bg disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-neutral-borders/30"
@@ -452,64 +476,47 @@ export default function FileExplorer({ onDisconnect }) {
               
               <button
                 onClick={handleDisconnect}
-                className="text-[14px] md:text-[16px] font-[400] text-text-secondary hover:text-accent-red transition-colors duration-300"
+                className="text-[14px] md:text-[16px] font-[400] text-text-secondary hover:text-text-primary transition-colors duration-300"
               >
                 Disconnect
               </button>
             </div>
           </div>
 
-          {/* Action Bar */}
-          <div className="flex flex-wrap items-center gap-3 mb-4">
-            <button
-              onClick={() => fileInputRef.current && fileInputRef.current.click()}
-              className="bg-text-primary text-neutral-white text-[14px] md:text-[16px] font-[400] px-4 md:px-6 py-2 md:py-3 rounded-[20px] border-none cursor-pointer transition-all duration-300 hover:bg-[#333333] transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-text-primary/30"
-            >
-              Upload Files
-            </button>
-            
-            <button
-              onClick={handleNewFolder}
-              className="border border-text-primary text-text-primary text-[14px] md:text-[16px] font-[400] px-4 md:px-6 py-2 md:py-3 rounded-[20px] cursor-pointer transition-all duration-300 hover:bg-text-primary hover:text-neutral-white transform hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-text-primary/30"
-            >
-              New Folder
-            </button>
-          </div>
+          
 
         </div>
       </div>
 
-      {/* Main File Area - With Sidebar */}
-      <div className="flex-1 flex px-6 md:px-8 pb-6 max-w-full mx-auto">
-        <div className="h-full flex-1 flex">
-          {/* File List */}
-          <div className="flex-1">
-            <div className="bg-neutral-white border border-neutral-borders rounded-[20px] h-full overflow-hidden">
-              <FileList
-                files={filteredFiles}
-                folders={filteredFolders}
-                viewMode={viewMode}
-                selectedItems={selectedItems}
-                onNavigateToFolder={navigateToFolder}
-                onSelectItem={handleSelectItem}
-                onSelectAll={handleSelectAll}
-                currentPath={currentPath}
-                onNavigateUp={navigateUp}
-                uploadProgress={uploadProgress}
-                onPreview={handlePreview}
-                onDragDropClick={() => fileInputRef.current && fileInputRef.current.click()}
-                onCreateFolderClick={handleNewFolder}
-                fileTypeFilter={fileTypeFilter}
-                setFileTypeFilter={setFileTypeFilter}
-                searchTerm={searchTerm}
-                setSearchTerm={setSearchTerm}
-                fileTypeOptions={fileTypeOptions}
-                onDownload={handleDownload}
-                onShare={handleShare}
-                onRename={handleRename}
-                onDelete={handleDelete}
-              />
-            </div>
+      {/* Main File Area */}
+      <div className="flex-1 flex px-6 md:px-8 pb-6 max-w-full mx-auto h-[calc(100vh-200px)] w-full">
+        {/* File List */}
+        <div className="flex-1">
+          <div className="bg-neutral-white border border-neutral-borders rounded-[20px] h-full overflow-hidden">
+            <FileList
+              files={filteredFiles}
+              folders={filteredFolders}
+              viewMode={viewMode}
+              selectedItems={selectedItems}
+              onNavigateToFolder={navigateToFolder}
+              onSelectItem={handleSelectItem}
+              onSelectAll={handleSelectAll}
+              currentPath={currentPath}
+              onNavigateUp={navigateUp}
+              uploadProgress={uploadProgress}
+              onPreview={handlePreview}
+              onDragDropClick={() => fileInputRef.current && fileInputRef.current.click()}
+              onCreateFolderClick={handleNewFolder}
+              onDownload={handleDownload}
+              onShare={handleShare}
+              onRename={handleRename}
+              onDelete={handleDelete}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              fileTypeFilter={fileTypeFilter}
+              setFileTypeFilter={setFileTypeFilter}
+              fileTypeOptions={fileTypeOptions}
+            />
           </div>
         </div>
       </div>

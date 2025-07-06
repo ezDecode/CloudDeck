@@ -87,24 +87,49 @@
 @tailwind utilities;
 
 :root {
-  /* Design System Colors */
+  --font-family-sans: 'PolySans', 'Inter', 'system-ui', 'Avenir', 'Helvetica', 'Arial', sans-serif;
+  
+  /* Color Palette */
   --color-primary-bg: #f5f5f5;
   --color-secondary-bg: #e0e0e0;
-  --color-accent-red: #ff4444;
   --color-text-primary: #000000;
   --color-text-secondary: #666666;
   --color-text-placeholder: #999999;
   --color-neutral-white: #ffffff;
   --color-neutral-borders: #cccccc;
   
-  /* Spacing System (8px base) */
-  --space-xs: 8px;
-  --space-sm: 16px;
-  --space-md: 24px;
-  --space-lg: 32px;
-  --space-xl: 48px;
-  --space-xxl: 64px;
-  --space-xxxl: 96px;
+  /* Typography */
+  --font-size-h1: 64px;
+  --font-size-h2: 40px;
+  --font-size-body: 24px;
+  --font-size-label: 18px;
+  --font-size-button: 20px;
+  
+  /* Spacing */
+  --spacing-xs: 8px;
+  --spacing-sm: 16px;
+  --spacing-md: 24px;
+  --spacing-lg: 32px;
+  --spacing-xl: 48px;
+  --spacing-xxl: 64px;
+  --spacing-xxxl: 96px;
+  
+  /* Border Radius */
+  --border-radius-design: 12px;
+  --border-radius-card: 24px;
+
+  font-family: var(--font-family-sans);
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: var(--color-text-primary);
+  background-color: var(--color-primary-bg);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 html {

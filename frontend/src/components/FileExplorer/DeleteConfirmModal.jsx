@@ -29,7 +29,7 @@ export default function DeleteConfirmModal({ isOpen, onClose, selectedItems, onD
       const result = await deleteObjects(credentials.bucketName, keys);
       
       if (result.success) {
-        onDeleteComplete();
+        onDeleteComplete(selectedItems);
         handleClose();
       } else {
         setError(result.message || "Failed to delete items");
@@ -54,11 +54,11 @@ export default function DeleteConfirmModal({ isOpen, onClose, selectedItems, onD
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-md w-full p-6 transform transition-all duration-300">
+      <div className="bg-neutral-white rounded-xl shadow-xl max-w-md w-full p-6 transform transition-all duration-300">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center">
-            <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mr-3">
-              <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <h2 className="text-xl font-bold text-text-primary flex items-center">
+            <div className="w-10 h-10 bg-secondary-bg rounded-full flex items-center justify-center mr-3">
+              <svg className="w-5 h-5 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
             </div>
@@ -66,7 +66,7 @@ export default function DeleteConfirmModal({ isOpen, onClose, selectedItems, onD
           </h2>
           <button
             onClick={handleClose}
-            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"
+            className="text-text-placeholder hover:text-text-secondary transition-colors p-2 hover:bg-secondary-bg rounded-lg"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -75,15 +75,15 @@ export default function DeleteConfirmModal({ isOpen, onClose, selectedItems, onD
         </div>
 
         <div className="mb-6">
-          <div className="flex items-center space-x-3 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-            <svg className="w-8 h-8 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex items-center space-x-3 p-4 bg-secondary-bg rounded-lg border border-neutral-borders">
+            <svg className="w-8 h-8 text-text-secondary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 19c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
             <div>
-              <p className="text-red-800 dark:text-red-200 font-medium">
+              <p className="text-text-primary font-medium">
                 Are you sure you want to delete {itemCount} {itemText}?
               </p>
-              <p className="text-red-600 dark:text-red-300 text-sm mt-1">
+              <p className="text-text-secondary text-sm mt-1">
                 This action cannot be undone. The {itemText} will be permanently removed from your S3 bucket.
               </p>
             </div>
@@ -91,8 +91,8 @@ export default function DeleteConfirmModal({ isOpen, onClose, selectedItems, onD
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+          <div className="mb-4 p-3 bg-secondary-bg border border-neutral-borders rounded-lg">
+            <p className="text-sm text-text-secondary">{error}</p>
           </div>
         )}
 
@@ -100,7 +100,7 @@ export default function DeleteConfirmModal({ isOpen, onClose, selectedItems, onD
           <button
             onClick={handleClose}
             disabled={loading}
-            className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors disabled:opacity-50"
+            className="px-4 py-2 text-text-secondary hover:text-text-primary transition-colors disabled:opacity-50"
             autoFocus
           >
             Cancel
@@ -108,7 +108,7 @@ export default function DeleteConfirmModal({ isOpen, onClose, selectedItems, onD
           <button
             onClick={handleDelete}
             disabled={loading}
-            className="px-6 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg transition-colors disabled:cursor-not-allowed flex items-center space-x-2"
+            className="px-6 py-2 bg-text-primary hover:bg-text-secondary disabled:bg-text-placeholder text-neutral-white rounded-lg transition-colors disabled:cursor-not-allowed flex items-center space-x-2"
           >
             {loading ? (
               <>

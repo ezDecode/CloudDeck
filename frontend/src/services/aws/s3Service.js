@@ -345,6 +345,11 @@ export const deleteObjects = async (bucket, keys) => {
       throw new Error('Bucket name is required and cannot be empty');
     }
 
+    // If there are no keys to delete, return success immediately
+    if (!keys || keys.length === 0) {
+      return { success: true, message: "No items to delete." };
+    }
+
     const client = getS3Client();
     const command = new DeleteObjectsCommand({
       Bucket: bucket.trim(),

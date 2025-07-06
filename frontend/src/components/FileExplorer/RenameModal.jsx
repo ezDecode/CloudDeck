@@ -150,8 +150,8 @@ export default function RenameModal({ isOpen, onClose, selectedItem, currentPath
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-accent-red/10 border border-accent-red/20 rounded-[16px]">
-            <p className="text-[14px] text-accent-red">{error}</p>
+          <div className="mb-4 p-3 bg-secondary-bg border border-neutral-borders rounded-[16px]">
+            <p className="text-[14px] text-text-secondary">{error}</p>
           </div>
         )}
 

@@ -9,7 +9,6 @@ export default {
       colors: {
         'primary-bg': '#f5f5f5',
         'secondary-bg': '#e0e0e0',
-        'accent-red': '#ff4444',
         'text-primary': '#000000',
         'text-secondary': '#666666',
         'text-placeholder': '#999999',

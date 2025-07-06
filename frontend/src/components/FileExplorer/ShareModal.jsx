@@ -271,8 +271,8 @@ export default function ShareModal({ isOpen, onClose, selectedFile }) {
 
         {/* Error Message */}
         {error && (
-          <div className="mb-6 p-4 bg-accent-red/10 border border-accent-red/20 rounded-[16px]">
-            <p className="text-[14px] font-[300] text-accent-red">{error}</p>
+          <div className="mb-6 p-4 bg-secondary-bg border border-neutral-borders rounded-[16px]">
+            <p className="text-[14px] font-[300] text-text-secondary">{error}</p>
           </div>
         )}
 

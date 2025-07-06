@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { testConnection, initializeS3Client, clearS3Client } from '../../services/aws/s3Service';
@@ -257,12 +256,12 @@ const AuthModal = ({ isOpen, onClose, onConnect }) => {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="text-left p-3 bg-red-100/50 border border-red-200 text-red-700 rounded-xl text-sm"
+                className="text-left p-3 bg-secondary-bg border border-neutral-borders text-text-secondary rounded-xl text-sm"
               >
                 <p className="mb-2">{error}</p>
                 
                 {errorDetails && (
-                  <p className="text-xs text-red-600 mb-2">
+                  <p className="text-xs text-text-secondary mb-2">
                     {errorDetails.statusCode && `Status: ${errorDetails.statusCode}`}
                     {errorDetails.name && ` • ${errorDetails.name}`}
                   </p>
@@ -278,7 +277,7 @@ const AuthModal = ({ isOpen, onClose, onConnect }) => {
               <button
                 type="submit"
                 disabled={isLoading || !accessKey || !secretKey || !bucketName || !region}
-                className="w-full bg-accent-red text-neutral-white text-[20px] md:text-[24px] font-[600] px-8 py-2 md:py-3 rounded-[24px] border-none cursor-pointer transition-all duration-300 hover:bg-[#e63939] disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] text-center"
+                className="w-full bg-text-primary text-neutral-white text-[20px] md:text-[24px] font-[600] px-8 py-2 md:py-3 rounded-[24px] border-none cursor-pointer transition-all duration-300 hover:bg-text-secondary disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] text-center"
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center">
@@ -292,7 +291,7 @@ const AuthModal = ({ isOpen, onClose, onConnect }) => {
             ) : (
               <button
                 type="button"
-                className="w-full bg-accent-red text-neutral-white text-[18px] md:text-[20px] font-[600] px-8 py-2 md:py-3 rounded-[24px] hover:bg-[#e63939] transition-all duration-300 shadow-lg transform hover:scale-[1.02] active:scale-[0.98]"
+                className="w-full bg-text-primary text-neutral-white text-[18px] md:text-[20px] font-[600] px-8 py-2 md:py-3 rounded-[24px] hover:bg-text-secondary transition-all duration-300 shadow-lg transform hover:scale-[1.02] active:scale-[0.98]"
                 onClick={handleDisconnect}
               >
                 Disconnect

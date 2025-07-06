@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import CustomDropdown from "../common/CustomDropdown";
 import FileItem from "./FileItem";
 import UploadItem from "./UploadItem";
 
@@ -16,19 +16,17 @@ export default function FileList({
   onPreview,
   onDragDropClick,
   onCreateFolderClick,
-  fileTypeFilter,
-  setFileTypeFilter,
-  searchTerm,
-  setSearchTerm,
-  fileTypeOptions,
   onDownload,
   onShare,
   onRename,
   onDelete,
+  searchTerm,
+  setSearchTerm,
+  fileTypeFilter,
+  setFileTypeFilter,
+  fileTypeOptions,
 }) {
-  const [showFilterMenu, setShowFilterMenu] = useState(false);
   const allItems = [...folders, ...files];
-  // Always display folders first, then files
   const filteredItems = [...folders, ...files];
   const isEmpty = allItems.length === 0 && Object.keys(uploadProgress).length === 0;
 
@@ -74,114 +72,83 @@ export default function FileList({
 
   return (
     <div className="h-full flex flex-col">
-      {/* Simple Controls Bar */}
+      {/* Controls Bar with Search and Filter */}
       <div className="flex items-center justify-between px-6 md:px-8 py-4 border-b border-neutral-borders">
         <div className="flex items-center space-x-4">
-          <span className="text-[16px] font-[400] text-text-primary">
-            {filteredItems.length} item{filteredItems.length !== 1 ? "s" : ""}
-          </span>
-        </div>
-
-        <div className="flex items-center space-x-4">
-          {/* Filter Dropdown */}
-          <div className="relative">
-            <button
-              onClick={() => setShowFilterMenu(!showFilterMenu)}
-              className="flex items-center space-x-2 p-2 border border-neutral-borders rounded-lg bg-neutral-white hover:bg-secondary-bg"
-            >
-              <span>{fileTypeOptions.find(o => o.value === fileTypeFilter)?.label || "All Files"}</span>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-            </button>
-            {showFilterMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-neutral-white border border-neutral-borders rounded-lg shadow-lg z-20">
-                {fileTypeOptions.map(option => (
-                  <div
-                    key={option.value}
-                    onClick={() => {
-                      setFileTypeFilter(option.value);
-                      setShowFilterMenu(false);
-                    }}
-                    className="p-2 hover:bg-secondary-bg cursor-pointer"
-                  >
-                    {option.label}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
           {/* Search Input */}
           <div className="relative">
             <input
               type="text"
-              placeholder="Search..."
+              placeholder="Search files..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="p-2 border border-neutral-borders rounded-lg bg-neutral-white"
+              className="block w-full p-2 border border-neutral-borders rounded-lg bg-neutral-white text-text-primary"
             />
           </div>
+          {/* Filter Dropdown */}
+          <CustomDropdown
+            options={fileTypeOptions}
+            selectedValue={fileTypeFilter}
+            onChange={setFileTypeFilter}
+            placeholder="Select a file type"
+          />
         </div>
 
-        {/* View Toggle */}
-         <div className="flex items-center space-x-4">
-           {/* Context Menu Actions for Selected Items */}
-           {selectedItems.size > 0 && (
-             <div className="flex items-center space-x-1 sm:space-x-2 mr-2 sm:mr-4">
-               {/* Select All Button */}
-               <button
-                 onClick={onSelectAll}
-                 className="p-1.5 sm:p-2 text-text-secondary hover:text-text-primary hover:bg-secondary-bg rounded-[10px] sm:rounded-[12px] transition-all duration-300"
-                 title={selectedItems.size === allItems.length ? "Unselect All" : "Select All"}
-               >
-                 Select All
-               </button>
-               <button
-                 onClick={onDownload}
-                 className="p-1.5 sm:p-2 text-text-secondary hover:text-text-primary hover:bg-secondary-bg rounded-[10px] sm:rounded-[12px] transition-all duration-300"
-                 title="Download"
-               >
-                 <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                 </svg>
-               </button>
-               
-               {selectedItems.size === 1 && (
-                 <>
-                   <button
-                     onClick={() => onShare()}
-                     className="hidden sm:flex p-1.5 sm:p-2 text-text-secondary hover:text-text-primary hover:bg-secondary-bg rounded-[10px] sm:rounded-[12px] transition-all duration-300"
-                     title="Share"
-                   >
-                     <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
-                     </svg>
-                   </button>
-                   
-                   <button
-                     onClick={() => onRename()}
-                     className="p-1.5 sm:p-2 text-text-secondary hover:text-text-primary hover:bg-secondary-bg rounded-[10px] sm:rounded-[12px] transition-all duration-300"
-                     title="Rename"
-                   >
-                     <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                     </svg>
-                   </button>
-                 </>
-               )}
-               
-               <button
+        {/* Context Menu Actions for Selected Items */}
+        {selectedItems.size > 0 && (
+          <div className="flex items-center space-x-1 sm:space-x-2">
+            <button
+              onClick={onSelectAll}
+              className="p-1.5 sm:p-2 text-text-secondary hover:text-text-primary hover:bg-secondary-bg rounded-[10px] sm:rounded-[12px] transition-all duration-300"
+              title={selectedItems.size === allItems.length ? "Unselect All" : "Select All"}
+            >
+              Select All
+            </button>
+            <button
+              onClick={onDownload}
+              className="p-1.5 sm:p-2 text-text-secondary hover:text-text-primary hover:bg-secondary-bg rounded-[10px] sm:rounded-[12px] transition-all duration-300"
+              title="Download"
+            >
+              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+            </button>
+            
+            {selectedItems.size === 1 && (
+              <>
+                <button
+                  onClick={() => onShare()}
+                  className="hidden sm:flex p-1.5 sm:p-2 text-text-secondary hover:text-text-primary hover:bg-secondary-bg rounded-[10px] sm:rounded-[12px] transition-all duration-300"
+                  title="Share"
+                >
+                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                  </svg>
+                </button>
+                
+                <button
+                  onClick={() => onRename()}
+                  className="p-1.5 sm:p-2 text-text-secondary hover:text-text-primary hover:bg-secondary-bg rounded-[10px] sm:rounded-[12px] transition-all duration-300"
+                  title="Rename"
+                >
+                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+              </>
+            )}
+            
+            <button
                  onClick={() => onDelete(Array.from(selectedItems))}
-                 className="p-1.5 sm:p-2 text-accent-red hover:bg-accent-red/10 rounded-[10px] sm:rounded-[12px] transition-all duration-300"
+                 className="p-1.5 sm:p-2 text-text-secondary hover:bg-secondary-bg rounded-[10px] sm:rounded-[12px] transition-all duration-300"
                  title="Delete"
                >
-                 <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                 </svg>
-               </button>
-               
-               <div className="h-4 sm:h-6 w-px bg-neutral-borders mx-1 sm:mx-2"></div>
-             </div>
-           )}
-        </div>
+              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* File List Content */}

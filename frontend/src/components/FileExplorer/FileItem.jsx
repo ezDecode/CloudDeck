@@ -25,8 +25,9 @@ export default function FileItem({
   const handleClick = (e) => {
     if (e.ctrlKey || e.metaKey) {
       onSelect();
-    } else if (item.type === "folder") {
-      onNavigate();
+    } else if (item.type !== "folder") {
+      // For files, a single click can also trigger selection
+      onSelect();
     }
   };
 
@@ -68,15 +69,17 @@ export default function FileItem({
         onDoubleClick={handleDoubleClick}
       >
         <td className="p-3">
-          <input
-            type="checkbox"
-            className="rounded-md"
-            checked={isSelected}
-            onChange={(e) => {
-              e.stopPropagation();
-              onSelect();
-            }}
-          />
+          {item.type !== "folder" && (
+            <input
+              type="checkbox"
+              className="rounded-md"
+              checked={isSelected}
+              onChange={(e) => {
+                e.stopPropagation();
+                onSelect();
+              }}
+            />
+          )}
         </td>
         <td className="p-3">
           <div className="flex items-center gap-2">
@@ -119,7 +122,7 @@ export default function FileItem({
           {showMenu && (
             <div
               ref={menuRef}
-              className="absolute right-0 mt-2 w-48 bg-secondary-bg border border-neutral-borders rounded-md shadow-lg z-50"
+              className="absolute right-0 mt-2 w-48 bg-[#E0E0E0] border border-neutral-borders rounded-lg shadow-lg z-50"
               onClick={(e) => e.stopPropagation()}
             >
               <ul className="py-1">
@@ -153,7 +156,7 @@ export default function FileItem({
                   Rename
                 </li>
                 <li
-                  className="px-4 py-2 hover:bg-neutral-borders cursor-pointer text-sm text-accent-red"
+                  className="px-4 py-2 hover:bg-secondary-bg cursor-pointer text-sm text-text-secondary"
                   onClick={() => {
                     onDelete([item]);
                     handleCloseMenu();
