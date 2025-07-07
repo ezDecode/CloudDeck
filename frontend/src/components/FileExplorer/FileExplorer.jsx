@@ -165,12 +165,12 @@ export default function FileExplorer({ onDisconnect }) {
     }
   };
 
-  const handleDisconnect = () => {
+  const handleDisconnect = async () => {
     // Clear credentials from localStorage
-    localStorage.removeItem("awsCredentials");
+    clearStoredCredentials();
     
     // Clear S3 client instance
-    const { clearS3Client } = import("../../services/aws/s3Service");
+    const { clearS3Client } = await import("../../services/aws/s3Service");
     clearS3Client();
     
     // Call the onDisconnect callback to update parent component
