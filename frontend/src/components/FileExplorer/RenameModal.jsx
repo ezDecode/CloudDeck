@@ -60,9 +60,7 @@ export default function RenameModal({ isOpen, onClose, selectedItem, currentPath
 
       // For AWS S3, we need to copy the object to a new key and delete the old one
       const oldKey = selectedItem.key;
-      const pathParts = oldKey.split('/');
-      pathParts[pathParts.length - 1] = newName;
-      const newKey = pathParts.join('/');
+      const newKey = `${currentPath}${newName}`;
 
       
       

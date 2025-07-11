@@ -25,8 +25,18 @@ export default function DeleteConfirmModal({ isOpen, onClose, selectedItems, onD
         return;
       }
 
+      const keys = Array.from(selectedItems).map(item => {
+        // The item can be a string (key) or an object with a key property
+        return typeof item === 'string' ? item : item.key;
+      }).filter(Boolean); // Filter out any potential null/undefined keys
+      
+      if (keys.length === 0) {
+        setError("No valid items selected for deletion.");
+        setLoading(false);
+        return;
+      }
+
       const { deleteObjects } = await import("../../services/aws/s3Service");
-      const keys = Array.from(selectedItems).map(item => item.key);
       const result = await deleteObjects(credentials.bucketName, keys);
       
       if (result.success) {
@@ -109,7 +119,7 @@ export default function DeleteConfirmModal({ isOpen, onClose, selectedItems, onD
           <button
             onClick={handleDelete}
             disabled={loading}
-            className="px-6 py-2 bg-text-primary hover:bg-text-secondary disabled:bg-text-placeholder text-neutral-white rounded-lg transition-colors disabled:cursor-not-allowed flex items-center space-x-2"
+            className="px-6 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-neutral-white rounded-lg transition-colors disabled:cursor-not-allowed flex items-center space-x-2"
           >
             {loading ? (
               <>

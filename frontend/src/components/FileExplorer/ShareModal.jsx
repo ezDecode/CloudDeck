@@ -172,9 +172,13 @@ export default function ShareModal({ isOpen, onClose, selectedFile }) {
                 max={getMaxTime()}
                 value={customTime}
                 onChange={(e) => setCustomTime(parseInt(e.target.value))}
-                className="flex-1 h-2 bg-secondary-bg rounded-lg appearance-none cursor-pointer slider"
+                className="w-full h-2 bg-secondary-bg rounded-lg appearance-none cursor-pointer slider"
                 style={{
-                  background: `linear-gradient(to right, #000000 0%, #000000 ${(customTime / getMaxTime()) * 100}%, #F5F5F5 ${(customTime / getMaxTime()) * 100}%, #F5F5F5 100%)`
+                  background: `linear-gradient(to right, #4f46e5 0%, #4f46e5 ${
+                    (customTime / getMaxTime()) * 100
+                  }%, #F5F5F5 ${
+                    (customTime / getMaxTime()) * 100
+                  }%, #F5F5F5 100%)`,
                 }}
               />
               <span className="text-[16px] font-[400] text-text-primary min-w-[80px] text-right">

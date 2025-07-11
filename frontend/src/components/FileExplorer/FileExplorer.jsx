@@ -115,13 +115,8 @@ export default function FileExplorer({ onDisconnect }) {
       const { downloadFile } = await import("../../services/aws/s3Service");
       const result = await downloadFile(credentials.bucketName, item.key);
       if (result.success) {
-        const link = document.createElement("a");
-        link.href = result.url;
-        link.setAttribute("download", item.name);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        toast.success(`Successfully downloaded ${item.name}`);
+        window.open(result.url, "_blank");
+        toast.success(`Successfully started download for ${item.name}`);
       } else {
         toast.error(`Failed to download ${item.name}`);
       }
@@ -380,17 +375,7 @@ export default function FileExplorer({ onDisconnect }) {
     }
   };
 
-  const filteredFiles = files.filter(file => {
-    const matchesSearch = file.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = fileTypeFilter === "all" || file.type === fileTypeFilter;
-    return matchesSearch && matchesFilter;
-  });
   
-  const filteredFolders = folders.filter(folder => {
-    const matchesSearch = folder.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = fileTypeFilter === "all" || fileTypeFilter === "folder";
-    return matchesSearch && matchesFilter;
-  });
 
   const fileTypeOptions = [
     { value: "all", label: "All Files", icon: "📁" },
@@ -503,8 +488,8 @@ export default function FileExplorer({ onDisconnect }) {
         <div className="flex-1">
           <div className="bg-neutral-white border border-neutral-borders rounded-[20px] h-full overflow-hidden">
             <FileList
-              files={filteredFiles}
-              folders={filteredFolders}
+              files={files}
+              folders={folders}
               viewMode={viewMode}
               selectedItems={selectedItems}
               onNavigateToFolder={navigateToFolder}

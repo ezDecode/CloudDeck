@@ -26,11 +26,40 @@ export default function FileList({
   setFileTypeFilter,
   fileTypeOptions,
 }) {
-  const allItems = [...folders, ...files];
-  const filteredItems = [...folders, ...files];
-  const isEmpty = allItems.length === 0 && Object.keys(uploadProgress).length === 0;
+  const filteredFolders = folders.filter(folder => {
+    const matchesSearch = folder.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = fileTypeFilter === "all" || fileTypeFilter === "folder";
+    return matchesSearch && matchesFilter;
+  });
 
-  if (isEmpty) {
+  const filteredFiles = files.filter(file => {
+    const matchesSearch = file.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = fileTypeFilter === "all" || file.type === fileTypeFilter;
+    return matchesSearch && matchesFilter;
+  });
+
+  const allItems = [...folders, ...files];
+  const filteredItems = [...filteredFolders, ...filteredFiles];
+
+  const isTrulyEmpty = allItems.length === 0 && Object.keys(uploadProgress).length === 0;
+  const isFilterActive = searchTerm !== "" || fileTypeFilter !== "all";
+  const noResults = !isTrulyEmpty && filteredItems.length === 0 && isFilterActive;
+
+  const getEmptyStateMessage = () => {
+    if (searchTerm && fileTypeFilter !== "all") {
+      return `No results for "${searchTerm}" in ${fileTypeFilter}s`;
+    }
+    if (searchTerm) {
+      return `No results for "${searchTerm}"`;
+    }
+    if (fileTypeFilter !== "all") {
+      const filterName = fileTypeOptions.find(o => o.value === fileTypeFilter)?.label || "items";
+      return `No ${filterName} found`;
+    }
+    return "No files found";
+  };
+
+  if (isTrulyEmpty) {
     return (
       <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-text-secondary p-8">
         <div className="max-w-md mx-auto text-center">
@@ -153,60 +182,73 @@ export default function FileList({
 
       {/* File List Content */}
       <div className="h-full overflow-auto">
-        <table className="min-w-full divide-y divide-neutral-borders">
-          <thead className="bg-secondary-bg sticky top-0 z-10">
-            <tr className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-              <th className="p-3 w-10 text-left"></th>
-              <th className="p-3 text-left">Name</th>
-              <th className="p-3 w-32 text-left">Size</th>
-              <th className="p-3 w-40 text-left">Modified</th>
-              <th className="p-3 w-24 text-center">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-neutral-white divide-y divide-neutral-borders">
-            {currentPath && (
-              <tr
-                className="hover:bg-secondary-bg cursor-pointer transition-all duration-200"
-                onClick={onNavigateUp}
-              >
-                <td className="p-3"></td>
-                <td className="p-3 flex items-center gap-3">
-                  <div className="w-8 h-8 bg-secondary-bg rounded-lg flex items-center justify-center">
-                    <svg className="w-5 h-5 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </div>
-                  <span className="text-text-primary font-medium">..</span>
-                </td>
-                <td className="p-3 text-sm text-text-placeholder">-</td>
-                <td className="p-3 text-sm text-text-placeholder">-</td>
-                <td className="p-3 text-sm text-text-placeholder">-</td>
+        {noResults ? (
+          <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-text-secondary p-8">
+            <div className="max-w-md mx-auto text-center">
+              <h3 className="text-[24px] md:text-[32px] font-[400] text-text-primary mb-4 leading-[1.1]">
+                {getEmptyStateMessage()}
+              </h3>
+              <p className="text-[16px] md:text-[18px] font-[300] text-text-secondary leading-relaxed mb-8">
+                Try adjusting your search or filter criteria.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <table className="min-w-full divide-y divide-neutral-borders">
+            <thead className="bg-secondary-bg sticky top-0 z-10">
+              <tr className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                <th className="p-3 w-10 text-left"></th>
+                <th className="p-3 text-left">Name</th>
+                <th className="p-3 w-32 text-left">Size</th>
+                <th className="p-3 w-40 text-left">Modified</th>
+                <th className="p-3 w-24 text-center">Actions</th>
               </tr>
-            )}
-            {Object.entries(uploadProgress).map(([key, progress]) => (
-              <tr key={key}>
-                <td colSpan="5" className="p-3">
-                  <UploadItem fileName={key.split("/").pop()} progress={progress} />
-                </td>
-              </tr>
-            ))}
-            {filteredItems.map((item) => (
-              <FileItem
-                key={item.key}
-                item={item}
-                isSelected={selectedItems.has(item.key)}
-                onSelect={() => onSelectItem(item.key)}
-                onNavigate={() => item.type === "folder" && onNavigateToFolder(item.key)}
-                viewMode="list"
-                onPreview={() => onPreview(item)}
-                onDownload={onDownload}
-                onShare={onShare}
-                onDelete={onDelete}
-                onRename={onRename}
-              />
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="bg-neutral-white divide-y divide-neutral-borders">
+              {currentPath && (
+                <tr
+                  className="hover:bg-secondary-bg cursor-pointer transition-all duration-200"
+                  onClick={onNavigateUp}
+                >
+                  <td className="p-3"></td>
+                  <td className="p-3 flex items-center gap-3">
+                    <div className="w-8 h-8 bg-secondary-bg rounded-lg flex items-center justify-center">
+                      <svg className="w-5 h-5 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </div>
+                    <span className="text-text-primary font-medium">..</span>
+                  </td>
+                  <td className="p-3 text-sm text-text-placeholder">-</td>
+                  <td className="p-3 text-sm text-text-placeholder">-</td>
+                  <td className="p-3 text-sm text-text-placeholder">-</td>
+                </tr>
+              )}
+              {Object.entries(uploadProgress).map(([key, progress]) => (
+                <tr key={key}>
+                  <td colSpan="5" className="p-3">
+                    <UploadItem fileName={key.split("/").pop()} progress={progress} />
+                  </td>
+                </tr>
+              ))}
+              {filteredItems.map((item) => (
+                <FileItem
+                  key={item.key}
+                  item={item}
+                  isSelected={selectedItems.has(item.key)}
+                  onSelect={() => onSelectItem(item.key)}
+                  onNavigate={() => item.type === "folder" && onNavigateToFolder(item.key)}
+                  viewMode="list"
+                  onPreview={() => onPreview(item)}
+                  onDownload={onDownload}
+                  onShare={onShare}
+                  onDelete={onDelete}
+                  onRename={onRename}
+                />
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

@@ -5,7 +5,7 @@ import { getStoredCredentials, clearStoredCredentials } from '../../utils/authUt
 const AuthModal = ({ isOpen, onClose, onConnect }) => {
   const [accessKey, setAccessKey] = useState('');
   const [secretKey, setSecretKey] = useState('');
-  const [region, setRegion] = useState('us-east-1');
+  const [region, setRegion] = useState('eu-north-1');
   const [bucketName, setBucketName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -198,6 +198,7 @@ const AuthModal = ({ isOpen, onClose, onConnect }) => {
               }}
               required
             >
+                <option value="eu-north-1" className="text-[#000000] bg-white py-2 hover:bg-[#f0f0f0]">Europe (Stockholm)</option>
                 <option value="us-east-1" className="text-[#000000] bg-white py-2 hover:bg-[#f0f0f0]">US East (N. Virginia)</option>
                 <option value="us-east-2" className="text-[#000000] bg-white py-2 hover:bg-[#f0f0f0]">US East (Ohio)</option>
                 <option value="us-west-1" className="text-[#000000] bg-white py-2 hover:bg-[#f0f0f0]">US West (N. California)</option>
@@ -209,7 +210,6 @@ const AuthModal = ({ isOpen, onClose, onConnect }) => {
                 <option value="eu-west-1" className="text-[#000000] bg-white py-2 hover:bg-[#f0f0f0]">Europe (Ireland)</option>
                 <option value="eu-west-2" className="text-[#000000] bg-white py-2 hover:bg-[#f0f0f0]">Europe (London)</option>
                 <option value="eu-west-3" className="text-[#000000] bg-white py-2 hover:bg-[#f0f0f0]">Europe (Paris)</option>
-                <option value="eu-north-1" className="text-[#000000] bg-white py-2 hover:bg-[#f0f0f0]">Europe (Stockholm)</option>
                 <option value="eu-south-1" className="text-[#000000] bg-white py-2 hover:bg-[#f0f0f0]">Europe (Milan)</option>
                 <option value="eu-south-2" className="text-[#000000] bg-white py-2 hover:bg-[#f0f0f0]">Europe (Spain)</option>
                 <option value="ap-east-1" className="text-[#000000] bg-white py-2 hover:bg-[#f0f0f0]">Asia Pacific (Hong Kong)</option>

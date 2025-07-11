@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import Hero from './components/Hero/Hero';
 import AuthModal from './components/AuthModal/AuthModal';
 import FileExplorer from "./components/FileExplorer/FileExplorer";
@@ -10,6 +11,7 @@ function App() {
   return (
     <Router>
       <Main />
+      <Analytics />
     </Router>
   );
 }
